@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mon Journal Ancien — collection de journaux d'époque</title>
+<meta name="description" content="Consultez les journaux anciens disponibles : Le Petit Parisien, Le Petit Journal illustré, Le Monde, L'Humanité, Le Dauphiné Libéré. Recherche par date, par année et par thème.">
+<meta name="theme-color" content="#2b2620">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mon Journal Ancien">
+<meta property="og:description" content="Recherchez un journal par date ou par thème dans la collection.">
+<meta property="og:locale" content="fr_FR">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #fff; }
+  @media (prefers-color-scheme: dark) { body { background: #fff; } }
+</style>
+</head>
+<body>
+<style>
+  .jr-app { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #2b2620; max-width: 720px; margin: 0 auto; padding: 0 12px 80px; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
+  .jr-storagewarn { background: #fdf1e0; border: 1px solid #e8c88a; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; line-height: 1.5; color: #7a5a10; }
+  .jr-app * { max-width: 100%; }
+  .jr-masthead { text-align: center; padding: 0.5rem 0 1.25rem; border-bottom: 2px solid #2b2620; margin-bottom: 1.25rem; }
+  .jr-masthead h1 { font-family: Georgia, "Times New Roman", serif; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; margin: 0; text-transform: uppercase; }
+  .jr-masthead p { font-size: 12px; color: #8a8070; margin: 4px 0 0; font-style: italic; }
+  .jr-tabs { display: flex; gap: 4px; margin-bottom: 1.25rem; flex-wrap: wrap; border-bottom: 1px solid #ece6d8; padding-bottom: 10px; }
+  .jr-tab { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; cursor: pointer; color: #8a8070; font-family: inherit; }
+  .jr-tab.active { background: #2b2620; color: #fff; border-color: #2b2620; }
+  .jr-row-open { display: flex; align-items: center; cursor: pointer; min-width: 0; flex-shrink: 0; }
+  .jr-row-open2 { flex: 1; }
+  .jr-tab-add { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px dashed #c9c0aa; background: #fff; cursor: pointer; color: #5a5445; }
+  .jr-newcol { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .jr-newcol input { flex: 1; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 8px; font-size: 13px; }
+  .jr-newcol button { padding: 8px 12px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 13px; cursor: pointer; }
+  .jr-newcol .jr-cancel2 { background: #fff; color: #2b2620; }
+  .jr-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .jr-stat { background: #f7f4ee; border: 1px solid #e4ddcd; border-radius: 8px; padding: 10px 8px; text-align: center; cursor: pointer; font-family: inherit; color: #2b2620; transition: background .12s, border-color .12s; }
+  .jr-stat.on { background: #2b2620; border-color: #2b2620; color: #fff; }
+  .jr-stat.on .l { color: #c9c0aa; }
+  .jr-stat .n { font-size: 20px; font-weight: 700; }
+  .jr-stat .l { font-size: 11px; color: #8a8070; margin-top: 2px; }
+  .jr-alert { background: #fdf1e0; border: 1px solid #e8c88a; border-radius: 8px; padding: 12px 14px; margin-bottom: 1.25rem; }
+  .jr-alert h3 { font-size: 13px; margin: 0 0 8px; font-weight: 700; }
+  .jr-alert-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px solid #f0dfb8; font-size: 13px; }
+  .jr-alert-row:first-of-type { border-top: none; }
+  .jr-alert-btns button { font-size: 12px; padding: 5px 9px; border-radius: 6px; border: 1px solid #c9a35c; background: #fff; cursor: pointer; margin-left: 6px; }
+  .jr-search { display: flex; gap: 8px; margin-bottom: 10px; }
+  .jr-search input { flex: 1; padding: 10px 12px; border: 1px solid #d8d0bd; border-radius: 8px; font-size: 15px; }
+  .jr-search button { padding: 10px 14px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap; }
+  .jr-cloud { margin-bottom: 1rem; }
+  .jr-tagtoggle { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 8px; border: 1px solid #e4ddcd; background: #faf8f3; color: #5a5445; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .jr-tagtoggle.on { border-color: #2b2620; color: #2b2620; font-weight: 600; }
+  .jr-caret { font-size: 10px; color: #a09781; }
+  .jr-tagmenu { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 2px 0; }
+  .jr-cloudtag { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; color: #5a5445; cursor: pointer; }
+  .jr-cloudtag.on { background: #2b2620; border-color: #2b2620; color: #fff; }
+  .jr-cloudtag.on span { color: #b0a894; }
+  .jr-cloudtag span { color: #b0a894; margin-left: 2px; }
+  .jr-clearTags { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px dashed #c9c0aa; background: #fff; color: #8a8070; cursor: pointer; }
+  .jr-confirm-lbl { font-size: 12px; color: #a33; white-space: nowrap; }
+  .jr-confirm-yes { font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid #a33; background: #a33; color: #fff; cursor: pointer; }
+  .jr-confirm-no { font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; color: #5a5445; cursor: pointer; }
+  .jr-detail { background: #faf8f3; border: 1px solid #e4ddcd; border-radius: 10px; padding: 14px 16px; margin-bottom: 1rem; }
+  .jr-detail-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .jr-detail-date { font-size: 17px; font-weight: 700; font-family: Georgia, serif; }
+  .jr-detail-head button { background: none; border: none; font-size: 16px; color: #8a8070; cursor: pointer; padding: 0 4px; }
+  .jr-lbl { display: block; font-size: 11px; color: #8a8070; text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 0 4px; }
+  .jr-detail input[type=text], .jr-detail textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; font-family: inherit; }
+  .jr-tagwrap { display: flex; flex-wrap: wrap; gap: 5px; }
+  .jr-tagpill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 4px 6px 4px 10px; border-radius: 999px; background: #ece6d8; color: #5a5445; }
+  .jr-tagpill button { background: none; border: none; color: #a09781; cursor: pointer; font-size: 14px; padding: 0 3px; line-height: 1; }
+  .jr-notags { font-size: 12px; color: #b0a894; font-style: italic; }
+  .jr-tagadd { display: flex; gap: 6px; margin-top: 8px; }
+  .jr-tagadd input { flex: 1; }
+  .jr-tagadd button { padding: 8px 12px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .jr-detail-save { width: 100%; margin-top: 14px; padding: 10px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 14px; cursor: pointer; }
+  .jr-backup { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ece6d8; }
+  .jr-backup-btns { display: flex; gap: 8px; }
+  .jr-backup-btns button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid #d8d0bd; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
+  .jr-backup-panel { margin-top: 10px; }
+  .jr-backup-panel textarea { width: 100%; box-sizing: border-box; height: 110px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 11px; font-family: monospace; }
+  .jr-backup-panel .jr-bk-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .jr-backup-panel .jr-bk-actions button { flex: 1; padding: 9px; border-radius: 6px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 13px; cursor: pointer; }
+  .jr-bk-msg { font-size: 12px; margin-top: 8px; }
+  .jr-bk-hint { font-size: 11px; color: #8a8070; margin: 6px 0 0; line-height: 1.5; }
+  .jr-guessed { font-style: italic; color: #a09781; }
+  .jr-colchip { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #ece6d8; color: #7a7362; margin-right: 6px; font-style: normal; }
+  .jr-detail-coll { font-size: 11px; color: #8a8070; margin-top: 2px; }
+  .jr-guesswarn { font-size: 11px; color: #92650c; background: #fdf5e4; border-radius: 6px; padding: 6px 8px; margin: 0 0 6px; line-height: 1.4; }
+  .jr-topbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 8px 0; }
+  .jr-mode { font-size: 11px; color: #8a8070; }
+  .jr-mode-on { color: #3a6b2a; font-weight: 600; }
+  .jr-loginbtn { font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; color: #8a8070; cursor: pointer; }
+  .jr-login { background: #faf8f3; border: 1px solid #e4ddcd; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .jr-login input { padding: 9px 10px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; }
+  .jr-login button { padding: 9px; border-radius: 6px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 14px; cursor: pointer; }
+  .jr-loginmsg { font-size: 12px; margin: 0; color: #8a8070; }
+  .jr-setup { background: #eef4e8; border: 1px solid #bcd4ac; border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 13px; line-height: 1.5; }
+  .jr-setup button { margin-top: 8px; width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #3a6b2a; background: #3a6b2a; color: #fff; font-size: 14px; cursor: pointer; }
+  .jr-setupmsg { font-size: 12px; margin: 8px 0 0; color: #5a5445; }
+  .jr-disclaimer { font-size: 11px; color: #8a8070; line-height: 1.5; background: #faf8f3; border-radius: 8px; padding: 9px 11px; margin: 0 0 14px; }
+  .jr-prix { font-size: 16px; font-weight: 700; margin: 10px 0 4px; }
+  .jr-detail-titre { font-size: 14px; margin: 8px 0; line-height: 1.4; }
+  .jr-gallica { display: inline-block; margin-top: 12px; font-size: 13px; color: #33488f; }
+  .jr-gallicanote { font-size: 11px; color: #8a8070; margin: 4px 0 0; line-height: 1.4; }
+  .jr-viewbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .jr-viewtoggle { display: flex; border: 1px solid #e4ddcd; border-radius: 999px; overflow: hidden; }
+  .jr-vbtn { font-size: 12px; padding: 6px 14px; border: none; background: #faf8f3; color: #8a8070; cursor: pointer; font-family: inherit; }
+  .jr-vbtn.on { background: #2b2620; color: #fff; }
+  .jr-sharebtn { font-size: 11px; padding: 6px 11px; border-radius: 999px; border: 1px solid #e4ddcd; background: #fff; color: #5a5445; cursor: pointer; white-space: nowrap; }
+  .jr-cal-annee { margin-bottom: 1.75rem; }
+  .jr-cal-annee h2 { font-family: Georgia, serif; font-size: 20px; margin: 0 0 10px; border-bottom: 1px solid #ece6d8; padding-bottom: 5px; }
+  .jr-cal-mois-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
+  .jr-cal-mois { background: #faf8f3; border: 1px solid #ece6d8; border-radius: 8px; padding: 7px; }
+  .jr-cal-nom { font-size: 11px; font-weight: 700; text-transform: capitalize; margin-bottom: 5px; text-align: center; color: #5a5445; }
+  .jr-cal-entetes, .jr-cal-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+  .jr-cal-entetes span { font-size: 8px; text-align: center; color: #b0a894; padding-bottom: 2px; }
+  .jr-cal-jour { font-size: 10px; text-align: center; padding: 3px 0; border-radius: 3px; border: none; font-family: inherit; line-height: 1.3; position: relative; overflow: hidden; }
+  .jr-cal-multi::after { content: ""; position: absolute; top: 0; right: 0; border-width: 0 5px 5px 0; border-style: solid; border-color: transparent rgba(43,38,32,.55) transparent transparent; }
+  .jr-cal-vide { display: block; }
+  .jr-cal-off { color: #d5cec0; background: transparent; }
+  .jr-cal-d { background: #a8e08f; color: #24501a; cursor: pointer; font-weight: 700; }
+  .jr-cal-s { background: #a8bce8; color: #23346b; cursor: pointer; font-weight: 700; }
+  .jr-cal-v { background: #e0d9ca; color: #8a8070; cursor: pointer; text-decoration: line-through; }
+  .jr-cal-r { background: #f5dc7a; color: #6b4a00; cursor: pointer; font-weight: 700; }
+  .jr-add-panier { flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; border: 1px solid #d8d0bd; background: #fff; color: #8a8070; font-size: 14px; cursor: pointer; line-height: 1; }
+  .jr-add-panier.on { background: #3a6b2a; border-color: #3a6b2a; color: #fff; }
+  .jr-detail-panier { width: 100%; margin-top: 14px; padding: 11px; border-radius: 8px; border: 1px solid #3a6b2a; background: #fff; color: #3a6b2a; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .jr-detail-panier.on { background: #3a6b2a; color: #fff; }
+  .jr-panier { position: fixed; left: 0; right: 0; bottom: 0; max-width: 720px; margin: 0 auto; background: #fff; border-top: 1px solid #e4ddcd; box-shadow: 0 -3px 14px rgba(0,0,0,.09); z-index: 40; }
+  .jr-panier-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border: none; background: #2b2620; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .jr-panier-corps { padding: 10px 14px 14px; max-height: 48vh; overflow-y: auto; }
+  .jr-panier-ligne { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f2eee4; font-size: 13px; }
+  .jr-panier-ligne em { color: #8a8070; font-size: 11px; font-style: normal; }
+  .jr-panier-ligne button { background: none; border: none; color: #b0a894; font-size: 15px; cursor: pointer; padding: 0 4px; }
+  .jr-panier-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .jr-panier-actions button { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 13px; cursor: pointer; }
+  .jr-panier-vider { background: #fff !important; color: #8a8070 !important; border-color: #d8d0bd !important; flex: 0 0 auto !important; padding: 11px 14px !important; }
+  .jr-panier-msg { font-size: 11px; color: #8a8070; margin: 9px 0 0; line-height: 1.4; }
+  .jr-cmdbtn { width: 100%; margin-top: 8px; padding: 9px; border-radius: 8px; border: 1px solid #d8d0bd; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
+  #jrBulkPanel select { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 13px; font-family: inherit; background: #fff; }
+  #jrBulkPanel textarea { width: 100%; box-sizing: border-box; height: 110px; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 12px; font-family: inherit; }
+  #jrCmdPanel textarea { width: 100%; box-sizing: border-box; height: 90px; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 12px; font-family: inherit; }
+  .jr-cmd-res { margin-top: 10px; }
+  .jr-cmd-ligne { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #f2eee4; }
+  .jr-cmd-ligne em { color: #8a8070; font-size: 11px; font-style: normal; }
+  .jr-cmd-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
+  .jr-cmd-warn { color: #92650c; }
+  .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
+  .jr-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
+  .jr-row-date { width: 140px; flex-shrink: 0; font-size: 14px; font-weight: 600; }
+  .jr-row-year { color: #8a8070; font-weight: 400; }
+  .jr-badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+  .jr-badge-d { background: #e3f0dc; color: #3a6b2a; }
+  .jr-badge-s { background: #e2e8f7; color: #33488f; }
+  .jr-badge-v { background: #ece6d8; color: #7a7362; }
+  .jr-badge-r { background: #fbeecb; color: #92650c; }
+  .jr-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .jr-badge-btn { border: none; cursor: pointer; font-family: inherit; flex-shrink: 0; }
+  .jr-statuspick { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+  .jr-statuspick button { border: 1px solid transparent; cursor: pointer; font-family: inherit; opacity: 0.55; }
+  .jr-statuspick button.cur { opacity: 1; border-color: #2b2620; }
+  .jr-pickcancel { background: none; border: none; color: #8a8070; font-size: 13px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .jr-row-tag { font-size: 12px; color: #8a8070; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; }
+  .jr-row-actions button { font-size: 12px; padding: 5px 8px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; cursor: pointer; color: #8a8070; }
+  .jr-empty { text-align: center; padding: 2rem 1rem; color: #8a8070; font-size: 14px; }
+  .jr-addbar { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #ece6d8; }
+  .jr-addbtn { width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
+  .jr-form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .jr-form input, .jr-form select { padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 13px; }
+  .jr-form .jr-tagfield { grid-column: 1 / -1; }
+  .jr-form .jr-submitrow { grid-column: 1 / -1; display: flex; gap: 8px; }
+  .jr-form .jr-submitrow button { flex: 1; padding: 9px; border-radius: 6px; border: 1px solid #2b2620; cursor: pointer; font-size: 13px; }
+  .jr-form .jr-submit { background: #2b2620; color: #fff; }
+  .jr-form .jr-cancel { background: #fff; color: #2b2620; }
+  .jr-err { color: #a33; font-size: 12px; grid-column: 1 / -1; margin: -4px 0 0; }
+</style>
+<div class="jr-app" id="jrApp">
+  <div id="jrStorageWarn"></div>
+  <div class="jr-topbar">
+    <span class="jr-mode" id="jrModeLbl"></span>
+    <button class="jr-loginbtn" id="jrLoginBtn">Connexion</button>
+  </div>
+  <div id="jrLoginPanel" style="display:none;"></div>
+  <div id="jrSetupPanel"></div>
+  <div class="jr-masthead">
+    <h1>Mon Journal Ancien</h1>
+  </div>
+  <div id="jrDisclaimer"></div>
+  <div class="jr-tabs" id="jrTabs"></div>
+  <div class="jr-newcol" id="jrNewColForm" style="display:none;">
+    <input type="text" id="jrNewColInput" placeholder="Nom de la collection, ex. Le Petit Journal illustré" />
+    <button id="jrNewColSave">Créer</button>
+    <button class="jr-cancel2" id="jrNewColCancel">Annuler</button>
+  </div>
+  <div class="jr-stats" id="jrStats"></div>
+  <div id="jrAlertZone"></div>
+  <div class="jr-search">
+    <input id="jrSearch" type="text" placeholder="12/11, novembre, 1918, armistice..." />
+    <button id="jrClear">Effacer</button>
+  </div>
+  <div class="jr-cloud" id="jrTagCloud"></div>
+  <div id="jrDetail"></div>
+  <div class="jr-viewbar">
+    <div class="jr-viewtoggle">
+      <button class="jr-vbtn" data-view="liste">Liste</button>
+      <button class="jr-vbtn" data-view="calendrier">Calendrier</button>
+    </div>
+    <button class="jr-sharebtn" id="jrShare">Copier le lien</button>
+  </div>
+  <div class="jr-count" id="jrCount"></div>
+  <div id="jrCalendar"></div>
+  <div id="jrList"></div>
+  <div class="jr-addbar">
+    <button class="jr-addbtn" id="jrAddToggle">+ Ajouter une date</button>
+    <div class="jr-form" id="jrForm" style="display:none;"></div>
+  </div>
+  <div class="jr-backup">
+    <div class="jr-backup-btns">
+      <button id="jrExportBtn">↓ Sauvegarder mes données</button>
+      <button id="jrImportBtn">↑ Restaurer une sauvegarde</button>
+    </div>
+    <button class="jr-cmdbtn" id="jrCmdBtn">📋 Traiter une commande reçue</button>
+    <div id="jrCmdPanel" style="display:none;"></div>
+    <button class="jr-cmdbtn" id="jrBulkBtn">📦 Ajouter un lot de journaux</button>
+    <div id="jrBulkPanel" style="display:none;"></div>
+    <p class="jr-bk-hint">Avant chaque mise à jour de l'outil : sauvegarde, puis restaure après. Tes modifications sont conservées.</p>
+    <div class="jr-backup-panel" id="jrBackupPanel" style="display:none;"></div>
+  </div>
+  <div class="jr-panier" id="jrPanierBar" style="display:none;"></div>
+</div>
+<script>
+const SEED_DATA = [[1914,8,17,'v'],[1914,8,21,'v'],[1914,8,25,'v'],[1914,8,28,'v'],[1914,11,30,'d'],[1914,12,1,'d'],[1914,12,10,'d'],[1914,12,13,'d'],[1914,12,18,'d'],[1914,12,25,'v'],[1914,12,28,'d'],[1915,1,1,'d'],[1915,1,2,'d'],[1915,1,3,'d'],[1915,1,8,'d'],[1915,1,10,'d'],[1915,1,12,'v'],[1915,1,13,'d'],[1915,1,18,'d'],[1915,1,20,'d'],[1915,1,22,'d'],[1915,1,24,'d'],[1915,1,25,'d'],[1915,1,27,'d'],[1915,2,5,'v'],[1915,2,26,'v'],[1915,2,27,'d'],[1915,3,2,'d'],[1915,3,3,'d'],[1915,3,4,'d'],[1915,3,5,'d'],[1915,3,6,'d'],[1915,3,8,'d'],[1915,3,9,'d'],[1915,3,10,'d'],[1915,3,11,'d'],[1915,3,12,'d'],[1915,3,13,'d'],[1915,3,14,'d'],[1915,3,16,'d'],[1915,3,17,'d'],[1915,3,18,'d'],[1915,3,19,'d'],[1915,3,20,'d'],[1915,3,21,'d'],[1915,3,22,'d'],[1915,3,23,'d'],[1915,3,24,'d'],[1915,3,26,'d'],[1915,3,27,'d'],[1915,3,28,'d'],[1915,3,29,'d'],[1915,3,30,'d'],[1915,3,31,'d'],[1915,4,2,'d'],[1915,4,3,'d'],[1915,4,4,'d'],[1915,4,5,'d'],[1915,4,6,'d'],[1915,4,7,'v'],[1915,4,8,'d'],[1915,4,9,'d'],[1915,4,10,'d'],[1915,4,18,'d'],[1915,4,19,'d'],[1915,4,20,'d'],[1915,4,21,'d'],[1915,4,22,'s'],[1915,4,23,'s'],[1915,4,24,'v'],[1915,4,25,'v'],[1915,4,26,'d'],[1915,4,27,'d'],[1915,4,28,'d'],[1915,4,30,'d'],[1915,5,31,'v'],[1915,7,9,'d'],[1915,7,12,'d'],[1915,8,19,'v'],[1915,8,21,'d'],[1915,8,30,'v'],[1915,8,31,'v'],[1915,9,10,'d'],[1915,9,18,'d'],[1915,9,23,'d'],[1915,10,3,'d'],[1915,10,6,'d'],[1915,10,12,'d'],[1915,10,15,'d'],[1915,10,18,'d'],[1915,10,19,'d'],[1915,10,20,'d'],[1915,12,1,'d'],[1915,12,3,'d'],[1915,12,4,'d'],[1915,12,13,'d'],[1915,12,15,'d'],[1915,12,16,'d'],[1915,12,19,'v'],[1915,12,20,'d'],[1915,12,21,'d'],[1915,12,22,'d'],[1915,12,24,'d'],[1915,12,26,'d'],[1916,1,1,'d'],[1916,1,2,'d'],[1916,1,5,'d'],[1916,1,7,'d'],[1916,1,8,'d'],[1916,1,9,'d'],[1916,1,10,'d'],[1916,1,11,'d'],[1916,1,12,'d'],[1916,1,14,'d'],[1916,1,16,'d'],[1916,1,17,'d'],[1916,1,20,'d'],[1916,1,31,'v'],[1916,4,2,'d'],[1916,4,3,'d'],[1916,4,4,'d'],[1916,4,5,'d'],[1916,4,6,'d'],[1916,4,7,'d'],[1916,4,8,'v'],[1916,4,11,'d'],[1916,4,12,'d'],[1916,4,13,'d'],[1916,4,14,'d'],[1916,4,15,'d'],[1916,4,16,'d'],[1916,4,17,'d'],[1916,4,18,'d'],[1916,4,19,'d'],[1916,4,20,'d'],[1916,4,21,'d'],[1916,4,22,'d'],[1916,4,23,'d'],[1916,4,24,'d'],[1916,4,25,'d'],[1916,4,26,'d'],[1916,4,27,'d'],[1916,4,28,'d'],[1916,4,29,'d'],[1916,4,30,'d'],[1916,5,6,'v'],[1916,5,7,'v'],[1916,5,12,'v'],[1916,5,14,'v'],[1916,5,18,'v'],[1916,5,20,'v'],[1916,7,23,'v'],[1916,7,24,'v'],[1916,7,31,'v'],[1916,8,1,'d'],[1916,8,2,'d'],[1916,8,3,'d'],[1916,8,4,'d'],[1916,8,5,'d'],[1916,8,6,'d'],[1916,8,7,'d'],[1916,8,8,'d'],[1916,8,9,'d'],[1916,8,10,'d'],[1916,8,11,'d'],[1916,8,12,'d'],[1916,8,13,'d'],[1916,8,14,'d'],[1916,8,16,'d'],[1916,8,17,'d'],[1916,8,18,'d'],[1916,8,19,'d'],[1916,8,20,'d'],[1916,8,21,'d'],[1916,8,23,'d'],[1916,8,24,'d'],[1916,8,25,'d'],[1916,8,26,'d'],[1916,8,27,'d'],[1916,8,29,'d'],[1916,8,30,'d'],[1916,8,31,'d'],[1916,9,1,'d'],[1916,9,5,'d'],[1916,9,6,'d'],[1916,9,8,'d'],[1916,9,9,'d'],[1916,9,11,'d'],[1916,9,12,'d'],[1916,9,17,'v'],[1916,9,22,'d'],[1916,9,24,'d'],[1916,9,25,'d'],[1916,9,30,'d'],[1916,10,1,'d'],[1916,10,2,'d'],[1916,10,3,'d'],[1916,10,4,'d'],[1916,10,5,'d'],[1916,10,6,'d'],[1916,10,7,'d'],[1916,10,8,'d'],[1916,10,9,'d'],[1916,10,10,'d'],[1916,10,11,'d'],[1916,10,12,'d'],[1916,10,13,'d'],[1916,10,14,'d'],[1916,10,15,'d'],[1916,10,16,'d'],[1916,10,17,'d'],[1916,10,18,'d'],[1916,10,19,'v'],[1916,10,20,'d'],[1916,10,21,'d'],[1916,10,22,'d'],[1916,10,24,'d'],[1916,11,1,'d'],[1916,11,2,'d'],[1916,11,3,'d'],[1916,11,4,'d'],[1916,11,5,'d'],[1916,11,6,'d'],[1916,11,7,'d'],[1916,11,8,'d'],[1916,11,9,'d'],[1916,11,10,'d'],[1916,11,11,'d'],[1916,11,13,'d'],[1916,11,14,'d'],[1916,11,15,'d'],[1916,11,16,'d'],[1916,11,17,'d'],[1916,11,18,'d'],[1916,11,19,'d'],[1916,11,20,'d'],[1916,11,21,'d'],[1916,11,22,'d'],[1916,11,23,'d'],[1916,11,24,'d'],[1916,11,25,'d'],[1916,11,26,'d'],[1916,11,27,'d'],[1916,11,28,'d'],[1916,11,29,'d'],[1916,11,30,'d'],[1916,12,1,'v'],[1916,12,2,'v'],[1916,12,3,'d'],[1916,12,5,'d'],[1916,12,6,'d'],[1916,12,7,'d'],[1916,12,8,'d'],[1916,12,9,'d'],[1916,12,10,'d'],[1916,12,11,'d'],[1916,12,12,'d'],[1916,12,13,'d'],[1916,12,14,'d'],[1916,12,15,'d'],[1916,12,16,'d'],[1916,12,17,'d'],[1916,12,18,'d'],[1916,12,19,'d'],[1916,12,20,'d'],[1916,12,21,'d'],[1916,12,22,'d'],[1916,12,23,'d'],[1916,12,24,'d'],[1916,12,25,'d'],[1916,12,26,'d'],[1916,12,28,'d'],[1916,12,29,'d'],[1916,12,30,'d'],[1916,12,31,'d'],[1917,1,2,'d'],[1917,1,3,'d'],[1917,1,4,'d'],[1917,1,5,'d'],[1917,1,6,'d'],[1917,1,7,'d'],[1917,1,8,'d'],[1917,1,9,'d'],[1917,1,10,'d'],[1917,1,11,'d'],[1917,1,13,'v'],[1917,1,14,'d'],[1917,1,16,'d'],[1917,1,17,'d'],[1917,1,18,'d'],[1917,1,19,'d'],[1917,1,20,'d'],[1917,1,21,'d'],[1917,1,22,'d'],[1917,1,23,'d'],[1917,1,24,'d'],[1917,1,25,'d'],[1917,1,26,'d'],[1917,1,27,'d'],[1917,1,28,'d'],[1917,1,29,'d'],[1917,1,30,'d'],[1917,1,31,'d'],[1917,2,14,'v'],[1917,2,21,'d'],[1917,2,23,'d'],[1917,2,25,'d'],[1917,3,10,'v'],[1917,3,13,'s'],[1917,3,17,'s'],[1917,3,25,'v'],[1917,3,28,'v'],[1917,4,1,'v'],[1917,4,2,'d'],[1917,4,3,'d'],[1917,4,6,'s'],[1917,4,7,'s'],[1917,4,8,'s'],[1917,4,9,'s'],[1917,4,10,'s'],[1917,4,11,'s'],[1917,4,12,'d'],[1917,4,13,'d'],[1917,4,14,'d'],[1917,4,15,'d'],[1917,4,16,'d'],[1917,4,17,'d'],[1917,4,18,'d'],[1917,4,19,'d'],[1917,4,20,'v'],[1917,4,21,'v'],[1917,4,22,'d'],[1917,4,23,'d'],[1917,4,30,'v'],[1917,5,1,'s'],[1917,5,2,'v'],[1917,5,3,'d'],[1917,5,4,'v'],[1917,5,5,'d'],[1917,5,6,'d'],[1917,5,7,'d'],[1917,5,8,'d'],[1917,5,9,'d'],[1917,5,10,'d'],[1917,5,11,'d'],[1917,5,12,'d'],[1917,5,13,'d'],[1917,5,14,'d'],[1917,5,15,'d'],[1917,5,17,'d'],[1917,5,18,'d'],[1917,5,19,'d'],[1917,5,20,'v'],[1917,5,22,'d'],[1917,5,26,'v'],[1917,5,29,'v'],[1917,5,31,'d'],[1917,7,30,'v'],[1917,7,31,'v'],[1917,8,1,'d'],[1917,8,2,'d'],[1917,8,3,'d'],[1917,8,4,'d'],[1917,8,5,'d'],[1917,8,6,'d'],[1917,8,7,'d'],[1917,8,8,'d'],[1917,8,9,'d'],[1917,8,10,'d'],[1917,8,11,'d'],[1917,8,12,'d'],[1917,8,13,'d'],[1917,8,14,'d'],[1917,8,15,'d'],[1917,8,16,'d'],[1917,8,17,'d'],[1917,8,18,'d'],[1917,8,19,'d'],[1917,8,20,'d'],[1917,8,21,'d'],[1917,8,22,'d'],[1917,8,23,'d'],[1917,8,24,'d'],[1917,8,25,'d'],[1917,8,26,'d'],[1917,8,27,'d'],[1917,8,28,'d'],[1917,8,29,'d'],[1917,8,30,'d'],[1917,8,31,'d'],[1917,10,14,'v'],[1917,10,15,'v'],[1917,10,18,'v'],[1917,10,24,'v'],[1918,1,1,'d'],[1918,1,2,'d'],[1918,1,3,'d'],[1918,1,4,'d'],[1918,1,6,'d'],[1918,1,9,'v'],[1918,1,11,'d'],[1918,1,12,'v'],[1918,1,16,'v'],[1918,1,17,'d'],[1918,1,18,'d'],[1918,1,19,'d'],[1918,1,20,'d'],[1918,1,21,'d'],[1918,1,22,'d'],[1918,1,23,'d'],[1918,1,24,'d'],[1918,1,25,'d'],[1918,1,26,'d'],[1918,1,27,'d'],[1918,1,28,'d'],[1918,1,29,'d'],[1918,1,30,'d'],[1918,8,18,'v'],[1918,8,28,'v'],[1918,9,30,'v'],[1918,12,20,'d'],[1919,1,1,'s'],[1919,1,2,'s'],[1919,1,3,'s'],[1919,1,4,'s'],[1919,1,5,'s'],[1919,1,6,'s'],[1919,1,7,'s'],[1919,1,8,'s'],[1919,1,9,'s'],[1919,1,10,'s'],[1919,1,11,'s'],[1919,1,12,'s'],[1919,1,13,'s'],[1919,1,14,'s'],[1919,1,15,'s'],[1919,1,16,'s'],[1919,1,17,'s'],[1919,1,18,'s'],[1919,1,19,'s'],[1919,1,20,'s'],[1919,1,21,'s'],[1919,1,22,'s'],[1919,1,23,'s'],[1919,1,24,'s'],[1919,1,25,'s'],[1919,1,26,'s'],[1919,1,27,'s'],[1919,1,28,'s'],[1919,1,29,'s'],[1919,1,30,'s'],[1919,1,31,'s'],[1919,2,6,'d'],[1919,2,24,'d'],[1919,2,28,'d'],[1919,3,1,'d'],[1919,3,2,'d'],[1919,3,3,'d'],[1919,3,4,'d'],[1919,3,5,'d'],[1919,3,6,'d'],[1919,3,7,'d'],[1919,3,8,'d'],[1919,3,9,'d'],[1919,3,10,'d'],[1919,3,13,'d'],[1919,3,15,'d'],[1919,3,16,'d'],[1919,3,17,'d'],[1919,3,18,'d'],[1919,3,22,'d'],[1919,3,23,'d'],[1919,3,31,'v'],[1919,4,1,'d'],[1919,4,2,'d'],[1919,4,3,'d'],[1919,4,4,'d'],[1919,4,5,'d'],[1919,4,7,'d'],[1919,4,8,'d'],[1919,4,9,'d'],[1919,4,10,'d'],[1919,4,11,'d'],[1919,4,12,'d'],[1919,4,14,'d'],[1919,4,15,'d'],[1919,4,16,'d'],[1919,4,24,'v'],[1919,4,25,'d'],[1919,4,26,'d'],[1919,4,27,'d'],[1919,4,28,'d'],[1919,4,29,'d'],[1919,4,30,'d'],[1919,5,1,'v'],[1919,5,23,'v'],[1919,5,30,'v'],[1919,5,31,'d'],[1919,6,30,'v'],[1919,7,18,'v'],[1919,8,1,'s'],[1919,8,2,'s'],[1919,8,3,'s'],[1919,8,4,'s'],[1919,8,5,'s'],[1919,8,6,'s'],[1919,8,7,'s'],[1919,8,8,'s'],[1919,8,9,'s'],[1919,8,10,'s'],[1919,8,11,'s'],[1919,8,12,'s'],[1919,8,13,'s'],[1919,8,14,'s'],[1919,8,15,'s'],[1919,8,16,'s'],[1919,8,17,'s'],[1919,8,18,'s'],[1919,8,19,'s'],[1919,8,20,'s'],[1919,8,21,'s'],[1919,8,22,'s'],[1919,8,23,'s'],[1919,8,24,'s'],[1919,8,25,'s'],[1919,8,26,'s'],[1919,8,27,'s'],[1919,8,28,'s'],[1919,8,29,'s'],[1919,8,30,'s'],[1919,8,31,'s']];
+
+const SEED_PJI = [
+[1916,2,27,"Le châtiment du pirate — le Zeppelin L-19 sombre","Guerre|Aviation|Marine"],
+[1916,3,12,"Le Zeppelin abattu","Guerre|Aviation"],
+[1916,9,3,"« Je ne veux rien devoir aux oppresseurs de mon pays »","Guerre|Allemagne"],
+[1918,12,1,"« Le Père la Victoire » — Georges Clemenceau","Personnages|Politique"],
+[1918,12,8,"Metz et la Lorraine rendues à la France","Villes|Alsace-Lorraine|Guerre","v"],
+[1918,12,15,"Strasbourg et l'Alsace rendues à la France","Villes|Alsace-Lorraine|Guerre"],
+[1918,12,22,"« Où peut-on être mieux qu'au sein de sa famille »","Personnages|Belgique"],
+[1919,1,5,"Le Roi Victor-Emmanuel III et le Prince de Piémont","Personnages|Italie"],
+[1919,1,12,"L'adieu de l'équipage à la terre de France","Marine|Amérique"],
+[1919,2,2,"Le Général de Castelnau","Généraux|Personnages"],
+[1919,2,9,"La Conférence de la Paix","Politique|Personnages"],
+[1919,2,16,"Le Maréchal Pétain","Généraux|Personnages"],
+[1919,2,23,"Le Général Fayolle","Généraux|Personnages","v"],
+[1919,3,2,"Trois grands chefs américains","Généraux|Amérique"],
+[1919,3,16,"La dernière permission","Guerre|Vie quotidienne"],
+[1919,3,23,"Le Général Mangin","Généraux|Personnages"],
+[1919,3,30,"Le Général Gouraud","Généraux|Personnages"],
+[1919,4,6,"Dunkerque, ville héroïque","Villes"],
+[1919,4,20,"Les uniformes français d'hier et d'aujourd'hui","Uniformes|Histoire"],
+[1919,4,27,"L'Amiral Beatty","Marine|Angleterre|Personnages"],
+[1919,5,4,"M. Paderewski, président du Conseil polonais","Personnages|Pologne"],
+[1919,5,11,"Polytechnique","Vie quotidienne|Uniformes"],
+[1919,5,18,"La vie a repris autour des tombes","Reconstruction|Mémoire","v"],
+[1919,6,1,"Le drapeau des tirailleurs sénégalais","Guerre|Colonies|Uniformes"],
+[1919,6,8,"Les deux Rantzau","Personnages|Allemagne"],
+[1919,6,22,"Liège, ville belge décorée de la Légion d'honneur","Villes|Belgique"],
+[1919,6,29,"L'Amiral Koltchak","Marine|Russie|Personnages"],
+[1919,7,13,"À ton tour Germania !","Allemagne|Guerre"],
+[1919,7,20,"Le défilé de la Victoire — Les voilà !","Guerre|Villes|Mémoire"],
+[1919,7,27,"Carte de l'Allemagne nouvelle","Cartes|Allemagne"],
+[1919,8,10,"La rentrée du Roi Pierre en Serbie","Personnages|Serbie"],
+[1919,8,31,"Le prix des guerres","Économie|Guerre"],
+[1919,9,7,"Le mariage dans les ruines","Reconstruction|Vie quotidienne"],
+[1919,9,21,"En souvenir de La Fayette","Amérique|Histoire"],
+[1919,9,28,"Carte de l'Autriche nouvelle","Cartes|Autriche"],
+[1919,10,5,"Le Général Dénikine","Généraux|Russie"],
+[1919,10,12,"Le tabac","Vie quotidienne|Économie"],
+[1919,10,19,"La charité de Mireille","Reconstruction|Vie quotidienne"],
+[1919,11,2,"La Toussaint — hommage aux morts de la Grande Guerre","Mémoire|Guerre"],
+[1919,11,9,"Il y a un an !","Mémoire|Guerre"],
+[1919,11,23,"Le ruban de la Victoire","Guerre|Mémoire"],
+[1919,11,30,"Carte des pays baltes","Cartes"],
+[1919,12,14,"Les villes décorées de la Légion d'honneur — Metz","Villes|Alsace-Lorraine"],
+[1919,12,21,"La rentrée de la Chambre","Politique"],
+[1919,12,28,"La France célèbre Noël avec ses filles retrouvées","Vie quotidienne|Reconstruction"],
+[1920,1,4,"Au travail !","Reconstruction|Politique"],
+[1920,1,11,"Syrie et Cilicie","Cartes|Colonies"],
+[1920,1,18,"Les Présidents de la République de 1871 à 1920","Personnages|Politique"],
+[1920,1,25,"Le nouveau Président de la République","Personnages|Politique"],
+[1920,2,15,"Le nouveau Président de la République et sa famille","Personnages|Politique"],
+[1920,2,22,"Une nation ressuscitée — La Pologne","Cartes|Pologne"],
+[1920,2,29,"Le nouveau Président de la Chambre, M. Raoul Péret","Personnages|Politique"],
+[1920,3,21,"Le prix des voyages","Économie|Transports"],
+[1920,4,4,"Congrès de l'Union des Sociétés de Gymnastique à Nice","Sport|Villes"],
+[1920,4,11,"Les mineurs du Nord","Vie quotidienne|Travail"],
+[1920,4,18,"La poste et le timbre-poste","Vie quotidienne|Histoire"],
+[1920,4,25,"Les transports en commun à Paris","Villes|Transports"],
+[1920,5,2,"La Conférence à San Remo","Politique|Personnages"],
+[1920,5,9,"Règlement de comptes","Économie|Amérique"],
+[1920,7,4,"La vague de baisse — tarifs d'avant-guerre","Économie|Vie quotidienne"],
+[1920,7,11,"Tableaux des prix de la viande","Économie|Vie quotidienne"],
+[1920,7,18,"Bébé a peur de l'eau — le premier bain de mer","Vie quotidienne"],
+[1920,7,25,"Le gouffre des budgets","Économie"],
+[1920,8,1,"Le blé","Économie|Travail"],
+[1920,8,8,"La vie chère aux champs","Économie|Travail"],
+[1920,8,22,"Le retour de la moisson en Alsace","Travail|Alsace-Lorraine"],
+[1920,8,29,"L'ouverture de la chasse","Vie quotidienne|Travail"],
+[1920,9,5,"Les confitures","Vie quotidienne"],
+[1920,9,12,"La victoire polonaise","Guerre|Pologne|Généraux"],
+[1920,9,19,"Le martyr irlandais","Irlande|Personnages"],
+[1920,9,26,"Les vendanges autrefois et aujourd'hui","Vie quotidienne|Travail"],
+[1920,10,24,"Le grand match de boxe de Jersey-City","Sport|Amérique","v"],
+[1920,11,7,"Comme ils m'aiment","Vie quotidienne"],
+[1920,11,14,"L'élection présidentielle aux États-Unis","Amérique|Personnages"],
+[1920,12,5,"Les événements d'Irlande","Irlande|Guerre"],
+[1921,8,28,"Les boys-scouts français reçoivent leur grand chef","Vie quotidienne|Angleterre"]
+];
+
+// Périodes historiques déduites de la date (Le Petit Parisien, quotidien 1914-1919).
+// Ce sont des SUPPOSITIONS basées sur le calendrier de la guerre, pas une lecture du journal.
+const PERIODES = [
+  [19140801,19140904,"Invasion et bataille des Frontières",["Front de l'Ouest"]],
+  [19140905,19140913,"Bataille de la Marne",["Marne","Front de l'Ouest"]],
+  [19140914,19141130,"Course à la mer, Flandres",["Flandres","Front de l'Ouest"]],
+  [19141201,19150421,"Guerre de tranchées",["Tranchées","Front de l'Ouest"]],
+  [19150422,19150525,"Ypres, premiers gaz de combat",["Ypres","Gaz"]],
+  [19150425,19160109,"Expédition des Dardanelles",["Dardanelles","Orient"]],
+  [19150501,19151231,"Offensives d'Artois et de Champagne",["Artois","Champagne","Front de l'Ouest"]],
+  [19160221,19161218,"Bataille de Verdun",["Verdun","Front de l'Ouest"]],
+  [19160701,19161118,"Bataille de la Somme",["Somme","Front de l'Ouest"]],
+  [19170308,19170331,"Révolution russe de Février",["Russie"]],
+  [19170406,19170531,"Entrée en guerre des États-Unis",["Amérique"]],
+  [19170416,19170630,"Offensive du Chemin des Dames",["Chemin des Dames","Front de l'Ouest"]],
+  [19171107,19171231,"Révolution d'Octobre",["Russie"]],
+  [19180321,19180717,"Offensives allemandes du printemps",["Front de l'Ouest"]],
+  [19180718,19180810,"Seconde bataille de la Marne",["Marne","Front de l'Ouest"]],
+  [19180811,19181110,"Offensive des Cent-Jours",["Front de l'Ouest"]],
+  [19181111,19181231,"Armistice",["Armistice"]],
+  [19190101,19190627,"Conférence de la paix",["Paix"]],
+  [19190628,19190710,"Traité de Versailles",["Versailles","Paix"]],
+  [19190711,19191231,"Après-guerre",["Après-guerre"]],
+  // Périodes de comblement (front stabilisé, pas d'offensive majeure)
+  [19160110,19160220,"Front stabilisé, hiver 1915-1916",["Tranchées","Front de l'Ouest"]],
+  [19161219,19170307,"Front stabilisé, hiver 1916-1917",["Tranchées","Front de l'Ouest"]],
+  [19170701,19171106,"Automne 1917, front de l'Ouest",["Front de l'Ouest"]],
+  [19170401,19170415,"Printemps 1917, avant le Chemin des Dames",["Front de l'Ouest"]],
+  [19180101,19180320,"Hiver 1917-1918, avant les offensives",["Tranchées","Front de l'Ouest"]]
+];
+
+function guessPeriode(y,m,d) {
+  const n = y*10000 + m*100 + d;
+  const titles = [], tags = new Set();
+  PERIODES.forEach(([a,b,t,tg]) => {
+    if (n >= a && n <= b) { titles.push(t); tg.forEach(x => tags.add(x)); }
+  });
+  if (titles.length === 0) return null;
+  return { title: titles.join(" · "), tags: Array.from(tags) };
+}
+
+// Collections « conquête spatiale » : titres déduits des grandes missions de ces dates.
+const SEED_MONDE = [
+[1968,12,21,"Lancement d'Apollo 8","Conquête spatiale|Apollo|Amérique"],
+[1968,12,22,"Apollo 8 en route vers la Lune — édition des 22 et 23","Conquête spatiale|Apollo|Amérique"],
+[1968,12,24,"Apollo 8 en orbite lunaire","Conquête spatiale|Apollo|Lune|Amérique"],
+[1968,12,25,"Apollo 8 autour de la Lune","Conquête spatiale|Apollo|Lune|Amérique"],
+[1968,12,26,"Retour d'Apollo 8","Conquête spatiale|Apollo|Amérique"],
+[1968,12,27,"Amerrissage d'Apollo 8","Conquête spatiale|Apollo|Amérique"],
+[1968,12,28,"Après la mission Apollo 8","Conquête spatiale|Apollo|Amérique"],
+[1968,12,31,"","" ],
+[1969,1,7,"",""],
+[1969,1,12,"Édition des 12 et 13 janvier",""],
+[1969,1,16,"Vols Soyouz 4 et 5, premier amarrage habité","Conquête spatiale|Soyouz|URSS"],
+[1969,5,23,"Apollo 10, répétition générale lunaire","Conquête spatiale|Apollo|Lune|Amérique"],
+[1969,7,22,"Premiers pas sur la Lune — Apollo 11","Conquête spatiale|Apollo|Lune|Amérique"],
+[1969,7,23,"Apollo 11, retour des astronautes","Conquête spatiale|Apollo|Lune|Amérique"],
+[1969,7,26,"Amerrissage d'Apollo 11","Conquête spatiale|Apollo|Amérique"],
+[1969,10,12,"Vols groupés Soyouz 6, 7 et 8 — édition des 12 et 13","Conquête spatiale|Soyouz|URSS"],
+[1969,10,14,"Vols groupés Soyouz 6, 7 et 8","Conquête spatiale|Soyouz|URSS"]
+];
+
+const SEED_DAUPHINE = [
+[1967,4,24,"Soyouz 1, mort de Vladimir Komarov","Conquête spatiale|Soyouz|URSS"],
+[1967,4,25,"Soyouz 1, hommage à Komarov","Conquête spatiale|Soyouz|URSS"],
+[1969,10,12,"Vols groupés Soyouz 6, 7 et 8","Conquête spatiale|Soyouz|URSS"]
+];
+
+const SEED_HUMA = [
+[1957,11,11,"",""],
+[1961,4,13,"Youri Gagarine, premier homme dans l'espace","Conquête spatiale|Gagarine|URSS"],
+[1961,4,14,"Youri Gagarine, premier homme dans l'espace","Conquête spatiale|Gagarine|URSS"],
+[1961,4,15,"Retour de Gagarine","Conquête spatiale|Gagarine|URSS"],
+[1961,4,17,"Après le vol de Gagarine","Conquête spatiale|Gagarine|URSS"],
+[1962,2,21,"Vol orbital de John Glenn","Conquête spatiale|Amérique"],
+[1962,2,22,"Vol orbital de John Glenn","Conquête spatiale|Amérique"],
+[1962,3,17,"",""],
+[1962,4,25,"",""],
+[1962,5,26,"",""],
+[1962,5,28,"",""],
+[1962,5,29,"",""],
+[1962,8,13,"Vols jumeaux Vostok 3 et 4","Conquête spatiale|Vostok|URSS"],
+[1962,8,14,"Vols jumeaux Vostok 3 et 4","Conquête spatiale|Vostok|URSS"],
+[1962,8,15,"Vols jumeaux Vostok 3 et 4","Conquête spatiale|Vostok|URSS"],
+[1962,8,16,"Retour de Vostok 3 et 4","Conquête spatiale|Vostok|URSS"],
+[1962,8,17,"Après les vols Vostok 3 et 4","Conquête spatiale|Vostok|URSS"],
+[1967,4,24,"Soyouz 1, mort de Vladimir Komarov","Conquête spatiale|Soyouz|URSS"],
+[1967,4,25,"Soyouz 1, hommage à Komarov","Conquête spatiale|Soyouz|URSS"],
+[1967,10,31,"",""]
+];
+
+const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const STATUS_LABEL = { d: "Disponible", s: "Numéro spécial", v: "Vendu", r: "Réservé" };
+const RESERVE_DAYS = 4;
+const STORAGE_KEY = "journaux-entries-v7";
+const COLLECTIONS_KEY = "journaux-collections-v7";
+const DEFAULT_COLLECTIONS = [
+  { id: "default", name: "Le Petit Parisien — 3e impression", prix: 6,
+    gallica: "https://gallica.bnf.fr/ark:/12148/cb34419111x/date" },
+  { id: "pji", name: "Le Petit Journal illustré", prix: null,
+    gallica: "https://gallica.bnf.fr/ark:/12148/cb344191170/date" },
+  { id: "monde", name: "Le Monde", prix: null, gallica: null },
+  { id: "dauphine", name: "Le Dauphiné Libéré", prix: null, gallica: null },
+  { id: "huma", name: "L'Humanité", prix: null, gallica: null }
+];
+
+let entries = [];
+let collections = [];
+let activeCollectionId = "default";
+let activeFilters = new Set(["d","s"]);
+let selectedTags = new Set();
+let tagsOpen = false;
+let pendingDeleteId = null;
+let statusEditId = null;
+let viewMode = "liste";
+let searchQuery = "";
+let detailId = null;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function seedEntries() {
+  const a = SEED_DATA.map(([y,m,d,status]) => {
+    const g = guessPeriode(y,m,d);
+    return {
+      id: uid(), year: y, month: m, day: d, status: status,
+      collectionId: "default",
+      title: g ? g.title : "", tags: g ? g.tags : [], guessed: !!g,
+      note: "", reservedUntil: null
+    };
+  });
+  const b = SEED_PJI.map(([y,m,d,title,tags,statut]) => ({
+    id: uid(), year: y, month: m, day: d, status: statut || "d",
+    collectionId: "pji", title: title, tags: tags ? tags.split("|") : [],
+    guessed: false, note: "", reservedUntil: null
+  }));
+  const simple = (arr, colId) => arr.map(([y,m,d,title,tags]) => ({
+    id: uid(), year: y, month: m, day: d, status: "d",
+    collectionId: colId, title: title || "",
+    tags: tags ? tags.split("|").filter(Boolean) : [],
+    guessed: !!title, note: "", reservedUntil: null
+  }));
+  return a.concat(b,
+    simple(SEED_MONDE, "monde"),
+    simple(SEED_DAUPHINE, "dauphine"),
+    simple(SEED_HUMA, "huma")
+  );
+}
+
+// ---------- Connexion à la base en ligne (Supabase) ----------
+const SUPABASE_URL = "https://dbbpulaznnkyqdrquaer.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiYnB1bGF6bm5reXFkcnF1YWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxMTI1ODUsImV4cCI6MjEwMzY4ODU4NX0.TjBM10RRCVDhht16dJQzaOTBM7T6gsisjeVvuD4YfbA";
+const SESSION_KEY = "mja-session";
+
+let session = null;
+let isAdmin = false;
+let cloudOk = false;
+let baseRemplie = false;
+let storageOk = true;
+
+function localSave() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    window.localStorage.setItem(COLLECTIONS_KEY, JSON.stringify(collections));
+    storageOk = true;
+  } catch (e) { storageOk = false; }
+}
+
+function bearer() {
+  return (session && session.access_token) ? session.access_token : SUPABASE_KEY;
+}
+
+async function rest(path, opts = {}, retry = true) {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+    method: opts.method || "GET",
+    headers: Object.assign({
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + bearer(),
+      "Content-Type": "application/json"
+    }, opts.headers || {}),
+    body: opts.body
+  });
+  if (res.status === 401 && retry && session && session.refresh_token) {
+    if (await refreshSession()) return rest(path, opts, false);
+  }
+  if (!res.ok) throw new Error("HTTP " + res.status + " " + (await res.text()).slice(0,200));
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function signIn(email, password) {
+  const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email, password: password })
+  });
+  if (!res.ok) return false;
+  const d = await res.json();
+  session = { access_token: d.access_token, refresh_token: d.refresh_token, email: (d.user && d.user.email) || email };
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  isAdmin = true;
+  return true;
+}
+
+async function refreshSession() {
+  if (!session || !session.refresh_token) return false;
+  const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: session.refresh_token })
+  });
+  if (!res.ok) { signOut(); return false; }
+  const d = await res.json();
+  session = { access_token: d.access_token, refresh_token: d.refresh_token, email: session.email };
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  isAdmin = true;
+  return true;
+}
+
+function signOut() {
+  session = null; isAdmin = false;
+  window.localStorage.removeItem(SESSION_KEY);
+}
+
+function restoreSession() {
+  try {
+    const raw = window.localStorage.getItem(SESSION_KEY);
+    if (raw) { session = JSON.parse(raw); isAdmin = true; }
+  } catch (e) { session = null; isAdmin = false; }
+}
+
+// ---------- Conversion entre le modèle local et les colonnes de la base ----------
+function toRow(e) {
+  return {
+    id: e.id, collection_id: e.collectionId,
+    annee: e.year, mois: e.month, jour: e.day,
+    statut: e.status, titre: e.title || "", tags: e.tags || [],
+    note: e.note || "", suppose: !!e.guessed,
+    reserve_jusqua: e.reservedUntil || null
+  };
+}
+function fromRow(r) {
+  return {
+    id: r.id, collectionId: r.collection_id,
+    year: r.annee, month: r.mois, day: r.jour,
+    status: r.statut, title: r.titre || "", tags: r.tags || [],
+    note: r.note || "", guessed: !!r.suppose,
+    reservedUntil: r.reserve_jusqua ? Number(r.reserve_jusqua) : null
+  };
+}
+
+// ---------- Écriture ----------
+async function persistEntry(e) {
+  if (cloudOk && isAdmin) {
+    try {
+      await rest("journaux", {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify([toRow(e)])
+      });
+    } catch (err) { showStorageWarning("Enregistrement impossible : " + err.message); }
+  }
+  localSave();
+}
+
+async function persistDelete(id) {
+  if (cloudOk && isAdmin) {
+    try { await rest("journaux?id=eq." + encodeURIComponent(id), { method: "DELETE" }); }
+    catch (err) { showStorageWarning("Suppression impossible : " + err.message); }
+  }
+  localSave();
+}
+
+async function pushAll() {
+  const rows = entries.map(toRow);
+  for (let i = 0; i < rows.length; i += 200) {
+    await rest("journaux", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify(rows.slice(i, i + 200))
+    });
+  }
+  await rest("collections", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify(collections.map((c, i) => ({
+      id: c.id, name: c.name, ordre: i,
+      prix: c.prix == null ? null : c.prix, gallica: c.gallica || null
+    })))
+  });
+}
+
+async function saveEntries() { localSave(); }
+
+async function saveCollections() {
+  if (cloudOk && isAdmin) {
+    try {
+      await rest("collections", {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify(collections.map((c, i) => ({
+          id: c.id, name: c.name, ordre: i,
+          prix: c.prix == null ? null : c.prix, gallica: c.gallica || null
+        })))
+      });
+    } catch (err) { showStorageWarning("Enregistrement impossible : " + err.message); }
+  }
+  localSave();
+}
+
+// ---------- Lecture ----------
+async function loadEntries() {
+  restoreSession();
+  activeCollectionId = "__all";
+  try {
+    const cols = await rest("collections?select=*&order=ordre.asc");
+    const rows = await rest("journaux?select=*&limit=10000");
+    cloudOk = true;
+    baseRemplie = !!(rows && rows.length);
+    if (baseRemplie) {
+      entries = rows.map(fromRow);
+      collections = (cols && cols.length)
+        ? cols.map(c => ({ id: c.id, name: c.name, prix: c.prix, gallica: c.gallica }))
+        : DEFAULT_COLLECTIONS.slice();
+      localSave();
+      return;
+    }
+    // base vide : on prépare les données mais on n'écrit rien sans connexion
+    entries = seedEntries();
+    collections = DEFAULT_COLLECTIONS.slice();
+    return;
+  } catch (e) {
+    cloudOk = false;
+  }
+  // hors ligne : on retombe sur la copie locale
+  try {
+    const rawC = window.localStorage.getItem(COLLECTIONS_KEY);
+    const rawE = window.localStorage.getItem(STORAGE_KEY);
+    if (rawE) {
+      entries = JSON.parse(rawE);
+      collections = rawC ? JSON.parse(rawC) : DEFAULT_COLLECTIONS.slice();
+      entries.forEach(e => {
+        if (!e.collectionId) e.collectionId = "default";
+        if (!Array.isArray(e.tags)) e.tags = [];
+        if (typeof e.title !== "string") e.title = "";
+        if (typeof e.note !== "string") e.note = "";
+      });
+      return;
+    }
+  } catch (e) { /* rien en local non plus */ }
+  entries = seedEntries();
+  collections = DEFAULT_COLLECTIONS.slice();
+  localSave();
+}
+
+function showStorageWarning(msg) {
+  const z = document.getElementById("jrStorageWarn");
+  if (!z) return;
+  z.innerHTML = `<div class="jr-storagewarn">⚠ ${escapeHtml(msg || "La base en ligne est injoignable. Tes modifications ne sont enregistrées que sur cet appareil.")}</div>`;
+}
+
+function normalize(s) {
+  return (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function formatDate(e) {
+  return `${e.day} ${MOIS[e.month-1]} <span class="jr-row-year">${e.year}</span>`;
+}
+
+function daysLeft(reservedUntil) {
+  return Math.ceil((reservedUntil - Date.now()) / 86400000);
+}
+
+function checkExpiredReservations() {
+  return entries.filter(e => e.status === "r" && e.reservedUntil && e.reservedUntil < Date.now());
+}
+
+function parseSearch(q) {
+  q = q.trim();
+  if (!q) return null;
+  let m = q.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (m) {
+    let year = parseInt(m[3], 10);
+    if (year < 100) year += 1900;
+    return { day: parseInt(m[1],10), month: parseInt(m[2],10), year };
+  }
+  m = q.match(/^(\d{1,2})[\/\-.](\d{1,2})$/);
+  if (m) return { day: parseInt(m[1],10), month: parseInt(m[2],10) };
+  const monthIdx = MOIS.findIndex(mo => normalize(mo) === normalize(q));
+  if (monthIdx >= 0) return { month: monthIdx + 1 };
+  m = q.match(/^(19\d{2})$/);
+  if (m) return { year: parseInt(m[1],10) };
+  return { text: normalize(q) };
+}
+
+function matchesSearch(e, parsed) {
+  if (!parsed) return true;
+  if (parsed.text) {
+    return (e.tags || []).some(t => normalize(t).includes(parsed.text))
+      || normalize(e.title).includes(parsed.text)
+      || normalize(e.note).includes(parsed.text)
+      || normalize(STATUS_LABEL[e.status]).includes(parsed.text);
+  }
+  if (parsed.day && e.day !== parsed.day) return false;
+  if (parsed.month && e.month !== parsed.month) return false;
+  if (parsed.year && e.year !== parsed.year) return false;
+  return true;
+}
+
+function render() {
+  renderTopbar();
+  renderDisclaimer();
+  renderTabs();
+  renderStats();
+  renderAlerts();
+  renderTagCloud();
+  renderDetail();
+  renderView();
+  renderPanier();
+  document.getElementById("jrAddToggle").style.display =
+    (isAdmin && activeCollectionId !== "__all") ? "block" : "none";
+  document.getElementById("jrTabAdd").style.display = isAdmin ? "inline-block" : "none";
+  document.querySelector(".jr-backup").style.display = isAdmin ? "block" : "none";
+}
+
+function renderTopbar() {
+  const lbl = document.getElementById("jrModeLbl");
+  const btn = document.getElementById("jrLoginBtn");
+  if (isAdmin) {
+    lbl.textContent = "Mode gestion" + (cloudOk ? "" : " · hors ligne");
+    lbl.className = "jr-mode jr-mode-on";
+    btn.textContent = "Se déconnecter";
+  } else {
+    lbl.textContent = cloudOk ? "" : "Hors ligne";
+    lbl.className = "jr-mode";
+    btn.textContent = "Connexion";
+  }
+  btn.onclick = () => {
+    if (isAdmin) { signOut(); location.reload(); return; }
+    const p = document.getElementById("jrLoginPanel");
+    p.style.display = p.style.display === "none" ? "block" : "none";
+    if (p.style.display === "block") renderLogin();
+  };
+  renderSetup();
+}
+
+function renderLogin() {
+  const p = document.getElementById("jrLoginPanel");
+  p.innerHTML = `<div class="jr-login">
+    <input type="email" id="jrEmail" placeholder="Email" autocomplete="username" />
+    <input type="password" id="jrPwd" placeholder="Mot de passe" autocomplete="current-password" />
+    <button id="jrDoLogin">Se connecter</button>
+    <p class="jr-loginmsg" id="jrLoginMsg"></p>
+  </div>`;
+  const go = async () => {
+    const msg = document.getElementById("jrLoginMsg");
+    msg.textContent = "Connexion…";
+    const ok = await signIn(
+      document.getElementById("jrEmail").value.trim(),
+      document.getElementById("jrPwd").value
+    );
+    if (ok) { location.reload(); }
+    else { msg.textContent = "Email ou mot de passe incorrect."; msg.style.color = "#a33"; }
+  };
+  document.getElementById("jrDoLogin").addEventListener("click", go);
+  document.getElementById("jrPwd").addEventListener("keydown", ev => { if (ev.key === "Enter") go(); });
+}
+
+function renderSetup() {
+  const z = document.getElementById("jrSetupPanel");
+  if (!isAdmin || !cloudOk || baseRemplie) { z.innerHTML = ""; return; }
+  z.innerHTML = `<div class="jr-setup">
+    <b>La base en ligne est vide.</b><br>
+    ${entries.length} journaux sont prêts à y être envoyés.
+    <button id="jrPush">Envoyer dans la base</button>
+    <p class="jr-setupmsg" id="jrPushMsg"></p>
+  </div>`;
+  document.getElementById("jrPush").addEventListener("click", async () => {
+    const m = document.getElementById("jrPushMsg");
+    m.textContent = "Envoi en cours, ne ferme pas la page…";
+    try {
+      await pushAll();
+      m.textContent = "✓ Terminé. Rechargement…";
+      setTimeout(() => location.reload(), 900);
+    } catch (err) {
+      m.textContent = "✕ Échec : " + err.message;
+      m.style.color = "#a33";
+    }
+  });
+}
+
+function renderDisclaimer() {
+  const z = document.getElementById("jrDisclaimer");
+  if (isAdmin) { z.innerHTML = ""; return; }
+  z.innerHTML = `<p class="jr-disclaimer">Les thèmes et titres marqués « ≈ » sont déduits de la date de parution, pas d'une lecture du journal. Ils donnent le contexte historique de la période, sans garantie sur le contenu exact du numéro.</p>`;
+}
+
+function renderTabs() {
+  const tabsHtml = `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes (${entries.length})</button>`
+    + collections.map(c =>
+    `<button class="jr-tab ${c.id===activeCollectionId?'active':''}" data-col="${c.id}">${c.name}</button>`
+  ).join("") + `<button class="jr-tab-add" id="jrTabAdd">+ Nouvelle collection</button>`;
+  document.getElementById("jrTabs").innerHTML = tabsHtml;
+  document.querySelectorAll(".jr-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      activeCollectionId = tab.dataset.col;
+      detailId = null; statusEditId = null; pendingDeleteId = null;
+      selectedTags.clear();
+      render();
+    });
+  });
+  document.getElementById("jrAddToggle").style.display = activeCollectionId === "__all" ? "none" : "block";
+  document.getElementById("jrTabAdd").addEventListener("click", () => {
+    document.getElementById("jrNewColForm").style.display = "flex";
+    document.getElementById("jrNewColInput").focus();
+  });
+}
+
+function renderStats() {
+  const counts = { d: 0, s: 0, v: 0, r: 0 };
+  entries.filter(inCollection).forEach(e => counts[e.status]++);
+  const labels = [["d","Disponibles"],["s","Spéciaux"],["v","Vendus"],["r","Réservés"]];
+  document.getElementById("jrStats").innerHTML = labels.map(([k,l]) =>
+    `<button class="jr-stat ${activeFilters.has(k)?'on':''}" data-filter="${k}">
+       <div class="n">${counts[k]}</div><div class="l">${l}</div>
+     </button>`
+  ).join("");
+  document.querySelectorAll(".jr-stat").forEach(card => {
+    card.addEventListener("click", () => {
+      const k = card.dataset.filter;
+      if (activeFilters.has(k)) activeFilters.delete(k); else activeFilters.add(k);
+      renderStats();
+      renderView();
+    });
+  });
+}
+
+function renderAlerts() {
+  const expired = checkExpiredReservations();
+  const zone = document.getElementById("jrAlertZone");
+  if (expired.length === 0) { zone.innerHTML = ""; return; }
+  const colName = id => (collections.find(c => c.id === id) || {}).name || "";
+  zone.innerHTML = `<div class="jr-alert">
+    <h3>${expired.length} réservation${expired.length > 1 ? "s" : ""} arrivée${expired.length > 1 ? "s" : ""} à échéance</h3>
+    ${expired.map(e => `
+      <div class="jr-alert-row">
+        <span>${e.day} ${MOIS[e.month-1]} ${e.year}${collections.length > 1 ? ' · ' + colName(e.collectionId) : ''}</span>
+        <span class="jr-alert-btns">
+          <button data-action="extend" data-id="${e.id}">Prolonger 4j</button>
+          <button data-action="release" data-id="${e.id}">Remettre dispo</button>
+        </span>
+      </div>`).join("")}
+  </div>`;
+  zone.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const entry = entries.find(x => x.id === btn.dataset.id);
+      if (!entry) return;
+      if (btn.dataset.action === "extend") {
+        entry.reservedUntil = Date.now() + RESERVE_DAYS * 86400000;
+      } else {
+        entry.status = "d";
+        entry.reservedUntil = null;
+      }
+      await persistEntry(entry);
+      render();
+    });
+  });
+}
+
+function inCollection(e) {
+  return activeCollectionId === "__all" || e.collectionId === activeCollectionId;
+}
+
+function renderList() {
+  const parsed = parseSearch(searchQuery);
+  let filtered = entries.filter(e =>
+    inCollection(e)
+    && (activeFilters.size === 0 || activeFilters.has(e.status))
+    && (selectedTags.size === 0 || (e.tags||[]).some(t => selectedTags.has(t)))
+    && matchesSearch(e, parsed)
+  );
+  filtered.sort((a,b) => a.year - b.year || a.month - b.month || a.day - b.day);
+
+  document.getElementById("jrCount").textContent = `${filtered.length} date${filtered.length !== 1 ? "s" : ""}`;
+
+  if (filtered.length === 0) {
+    document.getElementById("jrList").innerHTML = `<div class="jr-empty">Aucun journal ne correspond à cette recherche.</div>`;
+    return;
+  }
+
+  document.getElementById("jrList").innerHTML = filtered.map(e => {
+    let sub = e.title || "";
+    let cls = e.guessed && e.title ? "jr-row-tag jr-guessed" : "jr-row-tag";
+    if (e.guessed && e.title) sub = "≈ " + sub;
+    if (e.status === "r" && e.reservedUntil) {
+      const dl = daysLeft(e.reservedUntil);
+      sub = (dl > 0 ? `expire dans ${dl}j` : "réservation expirée") + (e.title ? " · " + e.title : "");
+      cls = "jr-row-tag";
+    }
+    const colTag = activeCollectionId === "__all"
+      ? `<span class="jr-colchip">${escapeHtml(collName(e.collectionId))}</span>` : "";
+    return `<div class="jr-row" data-id="${e.id}">
+      ${statusEditId === e.id ? `
+        <div class="jr-row-date">${formatDate(e)}</div>
+        <div class="jr-statuspick">
+          <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-set="d" data-eid="${e.id}">Disponible</button>
+          <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-set="s" data-eid="${e.id}">Spécial</button>
+          <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-set="v" data-eid="${e.id}">Vendu</button>
+          <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-set="r" data-eid="${e.id}">Réservé</button>
+        </div>
+        <button class="jr-pickcancel" data-cancelstatus="1">✕</button>
+      ` : `
+      <div class="jr-row-open" data-open="${e.id}">
+        <div class="jr-row-date">${formatDate(e)}</div>
+      </div>
+      ${isAdmin
+        ? `<button class="jr-badge jr-badge-${e.status} jr-badge-btn" data-status="${e.id}">${STATUS_LABEL[e.status]}</button>`
+        : `<span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>`}
+      <div class="jr-row-open jr-row-open2" data-open="${e.id}">
+        <div class="${cls}">${colTag}${escapeHtml(sub)}</div>
+      </div>
+      ${isAdmin || (e.status !== "d" && e.status !== "s") ? "" :
+        `<button class="jr-add-panier ${dansPanier(e.id) ? "on" : ""}" data-panier="${e.id}" aria-label="Ajouter à ma sélection">${dansPanier(e.id) ? "✓" : "+"}</button>`}
+      ${!isAdmin ? "" : `<div class="jr-row-actions">
+        ${pendingDeleteId === e.id ? `
+          <span class="jr-confirm-lbl">Supprimer ?</span>
+          <button data-yes="${e.id}" class="jr-confirm-yes">Oui</button>
+          <button data-no="${e.id}" class="jr-confirm-no">Non</button>
+        ` : `<button data-id="${e.id}" class="jr-del-btn" aria-label="Supprimer">✕</button>`}
+      </div>`}
+      `}
+    </div>`;
+  }).join("");
+
+  document.querySelectorAll(".jr-row-open").forEach(el => {
+    el.addEventListener("click", () => { pendingDeleteId = null; statusEditId = null; ouvrirFiche(el.dataset.open); });
+  });
+
+  document.querySelectorAll(".jr-badge-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      statusEditId = btn.dataset.status;
+      pendingDeleteId = null;
+      renderList();
+    });
+  });
+  document.querySelectorAll("[data-cancelstatus]").forEach(btn => {
+    btn.addEventListener("click", () => { statusEditId = null; renderList(); });
+  });
+  document.querySelectorAll("[data-set]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const entry = entries.find(x => x.id === btn.dataset.eid);
+      if (!entry) return;
+      entry.status = btn.dataset.set;
+      entry.reservedUntil = btn.dataset.set === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+      statusEditId = null;
+      await persistEntry(entry);
+      render();
+    });
+  });
+  document.querySelectorAll("[data-panier]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      basculerPanier(btn.dataset.panier);
+      renderPanier();
+      renderView();
+    });
+  });
+  document.querySelectorAll(".jr-del-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      pendingDeleteId = btn.dataset.id;
+      renderList();
+    });
+  });
+  document.querySelectorAll(".jr-confirm-no").forEach(btn => {
+    btn.addEventListener("click", () => { pendingDeleteId = null; renderList(); });
+  });
+  document.querySelectorAll(".jr-confirm-yes").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const delId = btn.dataset.yes;
+      entries = entries.filter(x => x.id !== delId);
+      pendingDeleteId = null;
+      if (detailId === delId) detailId = null;
+      await persistDelete(delId);
+      render();
+    });
+  });
+}
+
+function prixAffiche(e, col) {
+  if (e.status === "v") return "";
+  if (col.prix == null) return "";
+  if (e.status === "s") return "À partir de " + col.prix + " € — me contacter";
+  return col.prix + " €";
+}
+
+function currentFiltered() {
+  const parsed = parseSearch(searchQuery);
+  return entries.filter(e =>
+    inCollection(e)
+    && (activeFilters.size === 0 || activeFilters.has(e.status))
+    && (selectedTags.size === 0 || (e.tags||[]).some(t => selectedTags.has(t)))
+    && matchesSearch(e, parsed)
+  );
+}
+
+function renderView() {
+  document.querySelectorAll(".jr-vbtn").forEach(b => {
+    b.className = "jr-vbtn" + (b.dataset.view === viewMode ? " on" : "");
+    b.onclick = () => { viewMode = b.dataset.view; detailId = null; render(); };
+  });
+  document.getElementById("jrShare").onclick = copierLien;
+
+  const liste = document.getElementById("jrList");
+  const cal = document.getElementById("jrCalendar");
+  if (viewMode === "calendrier") {
+    liste.innerHTML = "";
+    renderCalendrier();
+  } else {
+    cal.innerHTML = "";
+    renderList();
+  }
+}
+
+function renderCalendrier() {
+  const zone = document.getElementById("jrCalendar");
+  const filtered = currentFiltered();
+  document.getElementById("jrCount").textContent =
+    `${filtered.length} date${filtered.length !== 1 ? "s" : ""}`;
+
+  if (filtered.length === 0) {
+    zone.innerHTML = `<div class="jr-empty">Aucun journal ne correspond à cette recherche.</div>`;
+    return;
+  }
+
+  // index : "annee-mois-jour" -> liste d'entrées (une date peut exister dans plusieurs collections)
+  const index = {};
+  filtered.forEach(e => {
+    const k = e.year + "-" + e.month + "-" + e.day;
+    (index[k] = index[k] || []).push(e);
+  });
+  const PRIORITE = { d: 4, s: 3, r: 2, v: 1 };
+  const annees = [...new Set(filtered.map(e => e.year))].sort((a,b) => a-b);
+
+  zone.innerHTML = annees.map(an => {
+    const mois = [];
+    for (let m = 1; m <= 12; m++) {
+      const nbJours = new Date(an, m, 0).getDate();
+      // 0 = lundi
+      const premier = (new Date(an, m-1, 1).getDay() + 6) % 7;
+      const cellules = [];
+      for (let i = 0; i < premier; i++) cellules.push(`<span class="jr-cal-vide"></span>`);
+      let aDuStock = false;
+      for (let j = 1; j <= nbJours; j++) {
+        const liste = index[an + "-" + m + "-" + j];
+        if (liste && liste.length) {
+          aDuStock = true;
+          const best = liste.slice().sort((a,b) => PRIORITE[b.status] - PRIORITE[a.status])[0];
+          const multi = liste.length > 1;
+          const infobulle = liste.map(x => collName(x.collectionId) + (x.title ? " — " + x.title : "")).join(" / ");
+          cellules.push(`<button class="jr-cal-jour jr-cal-${best.status}${multi ? " jr-cal-multi" : ""}" data-cal="${best.id}" data-multi="${multi ? liste.length : ""}" data-date="${j}/${m}/${an}" title="${escapeHtml(infobulle)}">${j}</button>`);
+        } else {
+          cellules.push(`<span class="jr-cal-jour jr-cal-off">${j}</span>`);
+        }
+      }
+      if (!aDuStock) continue;
+      mois.push(`<div class="jr-cal-mois">
+        <div class="jr-cal-nom">${MOIS[m-1]}</div>
+        <div class="jr-cal-entetes"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div class="jr-cal-grille">${cellules.join("")}</div>
+      </div>`);
+    }
+    return `<div class="jr-cal-annee"><h2>${an}</h2><div class="jr-cal-mois-wrap">${mois.join("")}</div></div>`;
+  }).join("");
+
+  zone.querySelectorAll("[data-cal]").forEach(b => {
+    b.addEventListener("click", () => {
+      if (b.dataset.multi) {
+        // plusieurs journaux à cette date : on bascule en liste filtrée sur la date exacte
+        searchQuery = b.dataset.date;
+        const inp = document.getElementById("jrSearch");
+        if (inp) inp.value = searchQuery;
+        viewMode = "liste";
+        detailId = null;
+        render();
+      } else {
+        ouvrirFiche(b.dataset.cal);
+      }
+    });
+  });
+}
+
+function copierLien() {
+  const p = new URLSearchParams();
+  if (searchQuery.trim()) p.set("q", searchQuery.trim());
+  if (selectedTags.size) p.set("tags", [...selectedTags].join(","));
+  if (activeCollectionId !== "__all") p.set("col", activeCollectionId);
+  if (viewMode !== "liste") p.set("vue", viewMode);
+  const url = location.origin + location.pathname + (p.toString() ? "?" + p.toString() : "");
+  const btn = document.getElementById("jrShare");
+  navigator.clipboard.writeText(url).then(
+    () => { btn.textContent = "✓ Lien copié"; setTimeout(() => btn.textContent = "Copier le lien", 2000); },
+    () => { btn.textContent = "Copie impossible"; setTimeout(() => btn.textContent = "Copier le lien", 2000); }
+  );
+}
+
+function lireLien() {
+  const p = new URLSearchParams(location.search);
+  if (p.get("q")) {
+    searchQuery = p.get("q");
+    const inp = document.getElementById("jrSearch");
+    if (inp) inp.value = searchQuery;
+  }
+  if (p.get("tags")) p.get("tags").split(",").filter(Boolean).forEach(t => selectedTags.add(t));
+  if (p.get("col")) activeCollectionId = p.get("col");
+  if (p.get("vue") === "calendrier") viewMode = "calendrier";
+}
+
+// ---------- Liste de courses (côté visiteur, stockée dans son navigateur) ----------
+const PANIER_KEY = "mja-panier";
+let panier = [];
+let panierOuvert = false;
+
+function chargerPanier() {
+  try {
+    const raw = window.localStorage.getItem(PANIER_KEY);
+    panier = raw ? JSON.parse(raw) : [];
+  } catch (e) { panier = []; }
+  // on nettoie les références disparues
+  panier = panier.filter(id => entries.some(e => e.id === id));
+}
+
+function sauverPanier() {
+  try { window.localStorage.setItem(PANIER_KEY, JSON.stringify(panier)); } catch (e) {}
+}
+
+function dansPanier(id) { return panier.indexOf(id) !== -1; }
+
+function basculerPanier(id) {
+  const i = panier.indexOf(id);
+  if (i === -1) panier.push(id); else panier.splice(i, 1);
+  sauverPanier();
+}
+
+function texteCommande() {
+  const items = panier.map(id => entries.find(e => e.id === id)).filter(Boolean);
+  items.sort((a,b) => a.year - b.year || a.month - b.month || a.day - b.day);
+  const lignes = items.map(e =>
+    `• ${e.day} ${MOIS[e.month-1]} ${e.year} — ${collName(e.collectionId)}`
+  );
+  return `Ma sélection — ${items.length} ${items.length > 1 ? "journaux" : "journal"}\n` + lignes.join("\n");
+}
+
+function renderPanier() {
+  const bar = document.getElementById("jrPanierBar");
+  if (!bar) return;
+  if (panier.length === 0) { bar.innerHTML = ""; bar.style.display = "none"; return; }
+  bar.style.display = "block";
+  const items = panier.map(id => entries.find(e => e.id === id)).filter(Boolean);
+  items.sort((a,b) => a.year - b.year || a.month - b.month || a.day - b.day);
+
+  bar.innerHTML = `
+    <button class="jr-panier-toggle" id="jrPanierToggle">
+      <span>Ma sélection · ${panier.length}</span><span>${panierOuvert ? "▼" : "▲"}</span>
+    </button>
+    ${panierOuvert ? `<div class="jr-panier-corps">
+      ${items.map(e => `<div class="jr-panier-ligne">
+        <span>${e.day} ${MOIS[e.month-1]} ${e.year} <em>${escapeHtml(collName(e.collectionId))}</em></span>
+        <button data-retire="${e.id}" aria-label="Retirer">✕</button>
+      </div>`).join("")}
+      <div class="jr-panier-actions">
+        <button id="jrPanierCopy">Copier ma sélection</button>
+        <button id="jrPanierVide" class="jr-panier-vider">Tout vider</button>
+      </div>
+      <p class="jr-panier-msg" id="jrPanierMsg">Copiez cette liste et envoyez-la moi par message. Elle vaut demande, pas réservation : je confirme la disponibilité avant tout achat. Les thèmes indiqués sur les fiches sont déduits de la date de parution, sans garantie du contenu exact du numéro.</p>
+    </div>` : ""}`;
+
+  document.getElementById("jrPanierToggle").addEventListener("click", () => {
+    panierOuvert = !panierOuvert; renderPanier();
+  });
+  bar.querySelectorAll("[data-retire]").forEach(b => {
+    b.addEventListener("click", () => { basculerPanier(b.dataset.retire); renderPanier(); renderView(); });
+  });
+  const copy = document.getElementById("jrPanierCopy");
+  if (copy) copy.addEventListener("click", () => {
+    const msg = document.getElementById("jrPanierMsg");
+    const txt = texteCommande();
+    navigator.clipboard.writeText(txt).then(
+      () => { msg.textContent = "✓ Copié. Colle-le dans ton message."; },
+      () => { msg.textContent = txt; }
+    );
+  });
+  const vider = document.getElementById("jrPanierVide");
+  if (vider) vider.addEventListener("click", () => {
+    panier = []; sauverPanier(); panierOuvert = false; renderPanier(); renderView();
+  });
+}
+
+function ouvrirFiche(id) {
+  detailId = id;
+  render();
+  const z = document.getElementById("jrDetail");
+  if (z && z.scrollIntoView) {
+    try { z.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    catch (e) { z.scrollIntoView(); }
+  }
+}
+
+function collName(id) {
+  const c = collections.find(x => x.id === id);
+  return c ? c.name : "?";
+}
+
+function escapeHtml(s) {
+  return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function renderDetail() {
+  const zone = document.getElementById("jrDetail");
+  const e = entries.find(x => x.id === detailId);
+  if (!e) { zone.innerHTML = ""; return; }
+  const col = collections.find(c => c.id === e.collectionId) || {};
+  const prixTxt = prixAffiche(e, col);
+  const lienGallica = col.gallica
+    ? `<a class="jr-gallica" href="${col.gallica}" target="_blank" rel="noopener">Consulter ce titre sur Gallica (BnF) ↗</a>
+       <p class="jr-gallicanote">Archives publiques de la BnF. L'édition consultable peut différer de l'exemplaire proposé ici.</p>`
+    : "";
+
+  if (!isAdmin) {
+    zone.innerHTML = `<div class="jr-detail">
+      <div class="jr-detail-head">
+        <div>
+          <div class="jr-detail-date">${formatDate(e)}</div>
+          <div class="jr-detail-coll">${escapeHtml(collName(e.collectionId))}</div>
+        </div>
+        <button id="jrDetailClose" aria-label="Fermer">✕</button>
+      </div>
+      <div class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</div>
+      ${prixTxt ? `<div class="jr-prix">${escapeHtml(prixTxt)}</div>` : ""}
+      ${e.title ? `<p class="jr-detail-titre ${e.guessed ? "jr-guessed" : ""}">${e.guessed ? "≈ " : ""}${escapeHtml(e.title)}</p>` : ""}
+      ${(e.tags||[]).length ? `<div class="jr-tagwrap">${e.tags.map(t => `<span class="jr-tagpill">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      ${(e.status === "d" || e.status === "s")
+        ? `<button class="jr-detail-panier ${dansPanier(e.id) ? "on" : ""}" id="jrDetailPanier">${dansPanier(e.id) ? "✓ Dans ma sélection" : "+ Ajouter à ma sélection"}</button>`
+        : ""}
+      ${lienGallica}
+    </div>`;
+    document.getElementById("jrDetailClose").addEventListener("click", () => { detailId = null; render(); });
+    const bp = document.getElementById("jrDetailPanier");
+    if (bp) bp.addEventListener("click", () => {
+      basculerPanier(e.id);
+      renderDetail(); renderPanier(); renderView();
+    });
+    return;
+  }
+
+  zone.innerHTML = `<div class="jr-detail">
+    <div class="jr-detail-head">
+      <div>
+        <div class="jr-detail-date">${formatDate(e)}</div>
+        <div class="jr-detail-coll">${escapeHtml(collName(e.collectionId))}${prixTxt ? " · " + escapeHtml(prixTxt) : ""}</div>
+      </div>
+      <button id="jrDetailClose" aria-label="Fermer">✕</button>
+    </div>
+    <label class="jr-lbl">Statut</label>
+    <div class="jr-statuspick">
+      <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-dset="d">Disponible</button>
+      <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-dset="s">Spécial</button>
+      <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-dset="v">Vendu</button>
+      <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-dset="r">Réservé</button>
+    </div>
+    <label class="jr-lbl">Titre / description de la une</label>
+    ${e.guessed && e.title ? '<p class="jr-guesswarn">≈ Titre déduit de la date, pas lu sur le journal — à vérifier avant de l\'annoncer à un client.</p>' : ''}
+    <input type="text" id="jrDetailTitle" value="${escapeHtml(e.title)}" placeholder="Ex. Le Général Mangin" />
+    <label class="jr-lbl">Tags</label>
+    <div class="jr-tagwrap" id="jrDetailTags">
+      ${(e.tags||[]).map((t,i) => `<span class="jr-tagpill">${escapeHtml(t)}<button data-rm="${i}" aria-label="Retirer">×</button></span>`).join("") || '<span class="jr-notags">Aucun tag</span>'}
+    </div>
+    <div class="jr-tagadd">
+      <input type="text" id="jrNewTag" placeholder="Ajouter un tag (ex. Cartes, Généraux, Villes…)" />
+      <button id="jrAddTagBtn">Ajouter</button>
+    </div>
+    <label class="jr-lbl">Note personnelle</label>
+    <textarea id="jrDetailNote" rows="2" placeholder="Prix, état, remarques…">${escapeHtml(e.note)}</textarea>
+    <button class="jr-detail-save" id="jrDetailSave">Enregistrer</button>
+  </div>`;
+
+  document.getElementById("jrDetailClose").addEventListener("click", () => { detailId = null; render(); });
+
+  zone.querySelectorAll("[data-dset]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      e.status = btn.dataset.dset;
+      e.reservedUntil = btn.dataset.dset === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+      await persistEntry(e);
+      renderStats();
+      renderDetail();
+      renderList();
+    });
+  });
+
+  zone.querySelectorAll("[data-rm]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      e.tags.splice(parseInt(btn.dataset.rm,10), 1);
+      await persistEntry(e);
+      renderDetail();
+      renderTagCloud();
+    });
+  });
+
+  const addTag = async () => {
+    const input = document.getElementById("jrNewTag");
+    const val = input.value.trim();
+    if (!val) return;
+    if (!e.tags) e.tags = [];
+    if (!e.tags.some(t => normalize(t) === normalize(val))) e.tags.push(val);
+    input.value = "";
+    await persistEntry(e);
+    renderDetail();
+    renderTagCloud();
+  };
+  document.getElementById("jrAddTagBtn").addEventListener("click", addTag);
+  document.getElementById("jrNewTag").addEventListener("keydown", ev => { if (ev.key === "Enter") addTag(); });
+
+  document.getElementById("jrDetailSave").addEventListener("click", async () => {
+    const newTitle = document.getElementById("jrDetailTitle").value;
+    if (newTitle !== e.title) e.guessed = false;
+    e.title = newTitle;
+    e.note = document.getElementById("jrDetailNote").value;
+    await persistEntry(e);
+    detailId = null;
+    render();
+  });
+}
+
+function renderTagCloud() {
+  const zone = document.getElementById("jrTagCloud");
+  const counts = {};
+  entries.filter(inCollection).forEach(e => {
+    (e.tags||[]).forEach(t => { counts[t] = (counts[t]||0) + 1; });
+  });
+  const sorted = Object.keys(counts).sort((a,b) => counts[b]-counts[a] || a.localeCompare(b));
+  if (sorted.length === 0) { zone.innerHTML = ""; return; }
+
+  const n = selectedTags.size;
+  const label = n === 0 ? `Tags (${sorted.length})` : `Tags · ${n} sélectionné${n>1?'s':''}`;
+
+  zone.innerHTML = `
+    <button class="jr-tagtoggle ${n>0?'on':''}" id="jrTagToggle">
+      <span>${label}</span><span class="jr-caret">${tagsOpen ? '▲' : '▼'}</span>
+    </button>
+    <div class="jr-tagmenu" style="display:${tagsOpen ? 'flex' : 'none'};">
+      ${sorted.map(t => `<button class="jr-cloudtag ${selectedTags.has(t)?'on':''}" data-tag="${escapeHtml(t)}">${escapeHtml(t)} <span>${counts[t]}</span></button>`).join("")}
+      ${n > 0 ? `<button class="jr-clearTags" id="jrClearTags">Tout désélectionner</button>` : ""}
+    </div>`;
+
+  document.getElementById("jrTagToggle").addEventListener("click", () => {
+    tagsOpen = !tagsOpen;
+    renderTagCloud();
+  });
+  zone.querySelectorAll(".jr-cloudtag").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.tag;
+      if (selectedTags.has(t)) selectedTags.delete(t); else selectedTags.add(t);
+      renderTagCloud();
+      renderView();
+    });
+  });
+  const clear = document.getElementById("jrClearTags");
+  if (clear) clear.addEventListener("click", () => {
+    selectedTags.clear();
+    renderTagCloud();
+    renderView();
+  });
+}
+
+function renderAddForm() {
+  document.getElementById("jrForm").innerHTML = `
+    <input type="number" id="jrNewDay" placeholder="Jour" min="1" max="31" />
+    <select id="jrNewMonth">${MOIS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("")}</select>
+    <input type="number" id="jrNewYear" placeholder="Année" value="1918" />
+    <select id="jrNewStatus">
+      <option value="d">Disponible</option>
+      <option value="s">Spécial</option>
+      <option value="v">Vendu</option>
+    </select>
+    <input type="text" id="jrNewTitle" class="jr-tagfield" placeholder="Titre de la une (optionnel)" />
+    <p class="jr-err" id="jrFormErr" style="display:none;"></p>
+    <div class="jr-submitrow">
+      <button class="jr-submit" id="jrSubmitBtn">Ajouter</button>
+      <button class="jr-cancel" id="jrCancelBtn">Annuler</button>
+    </div>
+  `;
+  document.getElementById("jrSubmitBtn").addEventListener("click", async () => {
+    const day = parseInt(document.getElementById("jrNewDay").value, 10);
+    const month = parseInt(document.getElementById("jrNewMonth").value, 10);
+    const year = parseInt(document.getElementById("jrNewYear").value, 10);
+    const errEl = document.getElementById("jrFormErr");
+    if (!day || day < 1 || day > 31 || !year || year < 1800 || year > 2100) {
+      errEl.textContent = "Entrez un jour (1-31) et une année valides.";
+      errEl.style.display = "block";
+      return;
+    }
+    const nouveau = {
+      id: uid(), year, month, day,
+      status: document.getElementById("jrNewStatus").value,
+      collectionId: activeCollectionId,
+      title: document.getElementById("jrNewTitle").value,
+      tags: [], note: "", guessed: false, reservedUntil: null
+    };
+    entries.push(nouveau);
+    await persistEntry(nouveau);
+    document.getElementById("jrForm").style.display = "none";
+    render();
+  });
+  document.getElementById("jrCancelBtn").addEventListener("click", () => {
+    document.getElementById("jrForm").style.display = "none";
+  });
+}
+
+document.getElementById("jrSearch").addEventListener("input", (e) => { searchQuery = e.target.value; renderView(); });
+document.getElementById("jrClear").addEventListener("click", () => { searchQuery = ""; document.getElementById("jrSearch").value = ""; renderView(); });
+document.getElementById("jrAddToggle").addEventListener("click", () => {
+  const form = document.getElementById("jrForm");
+  const show = form.style.display === "none";
+  form.style.display = show ? "grid" : "none";
+  if (show) renderAddForm();
+});
+
+document.getElementById("jrNewColSave").addEventListener("click", async () => {
+  const input = document.getElementById("jrNewColInput");
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const newCol = { id: uid(), name };
+  collections.push(newCol);
+  activeCollectionId = newCol.id;
+  await saveCollections();
+  input.value = "";
+  document.getElementById("jrNewColForm").style.display = "none";
+  render();
+});
+document.getElementById("jrNewColCancel").addEventListener("click", () => {
+  document.getElementById("jrNewColInput").value = "";
+  document.getElementById("jrNewColForm").style.display = "none";
+});
+
+document.getElementById("jrExportBtn").addEventListener("click", () => {
+  const panel = document.getElementById("jrBackupPanel");
+  const payload = JSON.stringify({ v: 4, collections: collections, entries: entries });
+  panel.style.display = "block";
+  panel.innerHTML = `
+    <textarea id="jrBkText" readonly></textarea>
+    <div class="jr-bk-actions"><button id="jrBkCopy">Copier la sauvegarde</button></div>
+    <p class="jr-bk-msg" id="jrBkMsg">Copie ce texte et garde-le (mail, notes, fichier). Il contient toute ta collection.</p>`;
+  const ta = document.getElementById("jrBkText");
+  ta.value = payload;
+  document.getElementById("jrBkCopy").addEventListener("click", async () => {
+    const msg = document.getElementById("jrBkMsg");
+    try {
+      await navigator.clipboard.writeText(payload);
+      msg.textContent = "✓ Sauvegarde copiée. Colle-la quelque part de sûr.";
+    } catch (err) {
+      ta.select();
+      msg.textContent = "Sélectionne le texte ci-dessus et copie-le manuellement.";
+    }
+  });
+});
+
+document.getElementById("jrImportBtn").addEventListener("click", () => {
+  const panel = document.getElementById("jrBackupPanel");
+  panel.style.display = "block";
+  panel.innerHTML = `
+    <textarea id="jrBkImport" placeholder="Colle ici ta sauvegarde…"></textarea>
+    <div class="jr-bk-actions"><button id="jrBkDo">Restaurer</button></div>
+    <p class="jr-bk-msg" id="jrBkMsg2">Attention : cela remplacera les données actuelles.</p>`;
+  document.getElementById("jrBkDo").addEventListener("click", async () => {
+    const msg = document.getElementById("jrBkMsg2");
+    try {
+      const data = JSON.parse(document.getElementById("jrBkImport").value.trim());
+      if (!data || !Array.isArray(data.entries) || !Array.isArray(data.collections)) {
+        throw new Error("format");
+      }
+      entries = data.entries;
+      collections = data.collections;
+      entries.forEach(e => {
+        if (!e.collectionId) e.collectionId = "default";
+        if (!Array.isArray(e.tags)) e.tags = e.tag ? [e.tag] : [];
+        if (typeof e.title !== "string") e.title = "";
+        if (typeof e.note !== "string") e.note = "";
+      });
+      activeCollectionId = "__all";
+      detailId = null;
+      localSave();
+      if (cloudOk && isAdmin) await pushAll();
+      panel.style.display = "none";
+      render();
+    } catch (err) {
+      msg.textContent = "✕ Sauvegarde illisible. Vérifie que tu as collé le texte en entier.";
+      msg.style.color = "#a33";
+    }
+  });
+});
+
+document.getElementById("jrCmdBtn").addEventListener("click", () => {
+  const p = document.getElementById("jrCmdPanel");
+  if (p.style.display === "block") { p.style.display = "none"; return; }
+  p.style.display = "block";
+  p.innerHTML = `
+    <textarea id="jrCmdText" placeholder="Colle ici la sélection que le client t'a envoyée…"></textarea>
+    <div class="jr-bk-actions"><button id="jrCmdRead">Analyser</button></div>
+    <div id="jrCmdResult"></div>`;
+  document.getElementById("jrCmdRead").addEventListener("click", analyserCommande);
+});
+
+function analyserCommande() {
+  const txt = document.getElementById("jrCmdText").value;
+  const res = document.getElementById("jrCmdResult");
+  const moisIdx = {};
+  MOIS.forEach((m,i) => { moisIdx[normalize(m)] = i+1; });
+
+  const trouves = [], introuvables = [];
+  txt.split("\n").forEach(ligne => {
+    const l = ligne.trim();
+    if (!l) return;
+    const m = normalize(l).replace(/\b(\d{1,2})(er|ere|eme|e)\b/g, "$1")
+      .match(/(\d{1,2})\s+([a-z]+)\s+(\d{4})/);
+    if (!m) return;
+    const jour = parseInt(m[1],10), mois = moisIdx[m[2]], annee = parseInt(m[3],10);
+    if (!mois) { introuvables.push(l); return; }
+    const cands = entries.filter(e => e.year===annee && e.month===mois && e.day===jour);
+    if (!cands.length) { introuvables.push(l); return; }
+    // si la ligne mentionne une collection, on affine
+    let choisi = cands[0];
+    if (cands.length > 1) {
+      const mieux = cands.find(e => normalize(l).includes(normalize(collName(e.collectionId)).slice(0,12)));
+      if (mieux) choisi = mieux;
+    }
+    if (!trouves.some(t => t.id === choisi.id)) trouves.push(choisi);
+  });
+
+  if (!trouves.length && !introuvables.length) {
+    res.innerHTML = `<p class="jr-cmd-msg">Aucune date reconnue. Le format attendu est « 12 septembre 1920 ».</p>`;
+    return;
+  }
+
+  res.innerHTML = `
+    <div class="jr-cmd-res">
+      ${trouves.map(e => `<div class="jr-cmd-ligne">
+        <span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>
+        ${e.day} ${MOIS[e.month-1]} ${e.year} <em>${escapeHtml(collName(e.collectionId))}</em>
+      </div>`).join("")}
+      ${introuvables.length ? `<p class="jr-cmd-msg jr-cmd-warn">Non trouvés : ${introuvables.map(escapeHtml).join(" · ")}</p>` : ""}
+      ${trouves.length ? `<div class="jr-bk-actions">
+        <button id="jrCmdReserve">Réserver ces ${trouves.length}</button>
+        <button id="jrCmdVendu">Marquer vendus</button>
+      </div>` : ""}
+      <p class="jr-cmd-msg" id="jrCmdMsg"></p>
+    </div>`;
+
+  const appliquer = async (statut) => {
+    const msg = document.getElementById("jrCmdMsg");
+    msg.textContent = "Enregistrement…";
+    for (const e of trouves) {
+      e.status = statut;
+      e.reservedUntil = statut === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+      await persistEntry(e);
+    }
+    msg.textContent = `✓ ${trouves.length} journaux mis à jour.`;
+    render();
+  };
+  const br = document.getElementById("jrCmdReserve");
+  if (br) br.addEventListener("click", () => appliquer("r"));
+  const bv = document.getElementById("jrCmdVendu");
+  if (bv) bv.addEventListener("click", () => appliquer("v"));
+}
+
+// ---------- Ajout d'un lot ----------
+function parseLotDates(txt) {
+  const moisIdx = {};
+  MOIS.forEach((m,i) => { moisIdx[normalize(m)] = i+1; });
+  const dates = [], rejets = [];
+
+  txt.split(/[\n;]/).forEach(ligne => {
+    const l = normalize(ligne.trim())
+      .replace(/^[•\-*·]\s*/, "")
+      .replace(/\b(\d{1,2})(er|ere|eme|e)\b/g, "$1");
+    if (!l) return;
+
+    // plage : "du 1 au 15 janvier 1915" / "1-15 janvier 1915"
+    let m = l.match(/^(?:du\s+)?(\d{1,2})\s*(?:au|a|-|à)\s*(\d{1,2})\s+([a-zé]+)\s+(\d{4})$/);
+    if (m && moisIdx[m[3]]) {
+      const mo = moisIdx[m[3]], an = parseInt(m[4],10);
+      const d1 = parseInt(m[1],10), d2 = parseInt(m[2],10);
+      const max = new Date(an, mo, 0).getDate();
+      if (d1 >= 1 && d2 <= max && d1 <= d2) {
+        for (let j = d1; j <= d2; j++) dates.push({ year: an, month: mo, day: j });
+        return;
+      }
+    }
+    // "12 septembre 1920"
+    m = l.match(/^(\d{1,2})\s+([a-zé]+)\s+(\d{4})$/);
+    if (m && moisIdx[m[2]]) {
+      const mo = moisIdx[m[2]], an = parseInt(m[3],10), j = parseInt(m[1],10);
+      if (j >= 1 && j <= new Date(an, mo, 0).getDate()) { dates.push({ year: an, month: mo, day: j }); return; }
+    }
+    // "12/09/1920"
+    m = l.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+    if (m) {
+      const j = parseInt(m[1],10), mo = parseInt(m[2],10), an = parseInt(m[3],10);
+      if (mo >= 1 && mo <= 12 && j >= 1 && j <= new Date(an, mo, 0).getDate()) {
+        dates.push({ year: an, month: mo, day: j }); return;
+      }
+    }
+    rejets.push(ligne.trim());
+  });
+  return { dates, rejets };
+}
+
+function renderBulk() {
+  const p = document.getElementById("jrBulkPanel");
+  p.innerHTML = `
+    <select id="jrBulkCol">${collections.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}</select>
+    <select id="jrBulkStatut">
+      <option value="d">Disponible</option>
+      <option value="s">Numéro spécial</option>
+      <option value="v">Vendu</option>
+    </select>
+    <textarea id="jrBulkText" placeholder="Une date par ligne :&#10;12 septembre 1920&#10;12/09/1920&#10;du 1 au 15 janvier 1915"></textarea>
+    <div class="jr-bk-actions"><button id="jrBulkCheck">Vérifier</button></div>
+    <div id="jrBulkResult"></div>`;
+  document.getElementById("jrBulkCheck").addEventListener("click", verifierLot);
+}
+
+function verifierLot() {
+  const colId = document.getElementById("jrBulkCol").value;
+  const statut = document.getElementById("jrBulkStatut").value;
+  const { dates, rejets } = parseLotDates(document.getElementById("jrBulkText").value);
+  const res = document.getElementById("jrBulkResult");
+
+  // doublons internes et déjà présents
+  const vus = new Set(), uniques = [], doublons = [], deja = [];
+  dates.forEach(d => {
+    const k = d.year + "-" + d.month + "-" + d.day;
+    if (vus.has(k)) { doublons.push(d); return; }
+    vus.add(k);
+    if (entries.some(e => e.collectionId === colId && e.year === d.year && e.month === d.month && e.day === d.day)) {
+      deja.push(d); return;
+    }
+    uniques.push(d);
+  });
+
+  const fmt = d => `${d.day} ${MOIS[d.month-1]} ${d.year}`;
+  res.innerHTML = `
+    <div class="jr-cmd-res">
+      <p class="jr-cmd-msg"><b>${uniques.length}</b> journaux à ajouter dans « ${escapeHtml(collName(colId))} ».</p>
+      ${uniques.length ? `<p class="jr-cmd-msg">${uniques.slice(0,12).map(fmt).join(" · ")}${uniques.length > 12 ? " … et " + (uniques.length-12) + " autres" : ""}</p>` : ""}
+      ${deja.length ? `<p class="jr-cmd-msg jr-cmd-warn">${deja.length} déjà présents, ignorés : ${deja.slice(0,6).map(fmt).join(" · ")}${deja.length>6?" …":""}</p>` : ""}
+      ${doublons.length ? `<p class="jr-cmd-msg jr-cmd-warn">${doublons.length} doublons dans ta liste, comptés une fois.</p>` : ""}
+      ${rejets.length ? `<p class="jr-cmd-msg jr-cmd-warn">${rejets.length} lignes non comprises : ${rejets.slice(0,5).map(escapeHtml).join(" · ")}${rejets.length>5?" …":""}</p>` : ""}
+      ${uniques.length ? `<div class="jr-bk-actions"><button id="jrBulkGo">Ajouter ces ${uniques.length} journaux</button></div>` : ""}
+      <p class="jr-cmd-msg" id="jrBulkMsg"></p>
+    </div>`;
+
+  const go = document.getElementById("jrBulkGo");
+  if (go) go.addEventListener("click", async () => {
+    const msg = document.getElementById("jrBulkMsg");
+    msg.textContent = "Ajout en cours…";
+    const nouveaux = uniques.map(d => ({
+      id: uid(), year: d.year, month: d.month, day: d.day,
+      status: statut, collectionId: colId,
+      title: "", tags: [], note: "", guessed: false, reservedUntil: null
+    }));
+    nouveaux.forEach(n => entries.push(n));
+    if (cloudOk && isAdmin) {
+      try {
+        for (let i = 0; i < nouveaux.length; i += 200) {
+          await rest("journaux", {
+            method: "POST",
+            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(nouveaux.slice(i, i+200).map(toRow))
+          });
+        }
+      } catch (err) { msg.textContent = "✕ Échec : " + err.message; return; }
+    }
+    localSave();
+    msg.textContent = `✓ ${nouveaux.length} journaux ajoutés.`;
+    document.getElementById("jrBulkText").value = "";
+    render();
+  });
+}
+
+document.getElementById("jrBulkBtn").addEventListener("click", () => {
+  const p = document.getElementById("jrBulkPanel");
+  if (p.style.display === "block") { p.style.display = "none"; return; }
+  p.style.display = "block";
+  renderBulk();
+});
+
+(async function init() {
+  try {
+    await loadEntries();
+    chargerPanier();
+    lireLien();
+    render();
+    if (!cloudOk) {
+      showStorageWarning("Base en ligne injoignable. Affichage de la dernière copie locale — les modifications ne seront pas partagées.");
+    }
+  } catch (err) {
+    document.getElementById("jrApp").insertAdjacentHTML("afterbegin",
+      `<div class="jr-storagewarn">Un problème est survenu au chargement : ${escapeHtml(String(err && err.message || err))}.<br>
+       Essaie de recharger la page, ou restaure une sauvegarde depuis le bas de la page.</div>`);
+  }
+})();
+</script>
+
+</body>
+</html>
