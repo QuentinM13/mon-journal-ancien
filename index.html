@@ -54,7 +54,7 @@
   .jr-caret { font-size: 10px; color: #a09781; }
   .jr-tagmenu { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 2px 0; }
   .jr-cloudtag { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; color: #5a5445; cursor: pointer; }
-  .jr-cloudtag.on { background: #2b2620; border-color: #2b2620; color: #fff; }
+  .jr-cloudtag.on { background: #3a6b2a; border-color: #3a6b2a; color: #fff; font-weight: 600; }
   .jr-cloudtag.on span { color: #b0a894; }
   .jr-cloudtag span { color: #b0a894; margin-left: 2px; }
   .jr-clearTags { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px dashed #c9c0aa; background: #fff; color: #8a8070; cursor: pointer; }
@@ -181,11 +181,16 @@
   .jr-stat-sub { font-size: 11px; color: #8a8070; line-height: 1.5; margin: 0 0 8px; }
   .jr-bar-vert { background: #3a6b2a !important; }
   .jr-bar-v em { color: #b0a894; font-style: normal; font-size: 10px; }
-  .jr-coledit-btn { width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 8px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 12px; cursor: pointer; }
+  .jr-coledit-btn { width: 100%; padding: 8px; margin: 22px 0 12px; border-radius: 8px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 12px; cursor: pointer; }
   .jr-coledit { background: #faf8f3; border: 1px solid #e4ddcd; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
   .jr-coledit input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; font-family: inherit; }
   .jr-coledit-note { font-size: 11px; color: #8a8070; margin: 5px 0 0; line-height: 1.4; }
   .jr-coledit-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
+  .jr-sugg { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 8px; }
+  .jr-sugg-lbl { flex-basis: 100%; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #b0a894; margin-bottom: 2px; }
+  .jr-suggtag { font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px dashed #d8d0bd; background: #fff; color: #8a8070; cursor: pointer; font-family: inherit; }
+  .jr-suggtag-master { border-style: solid; border-color: #2b2620; color: #2b2620; font-weight: 600; }
+  .jr-sugg-vide { font-size: 11px; color: #b0a894; font-style: italic; }
   .jr-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 13px; font-family: inherit; cursor: pointer; }
   .jr-btn-sec { background: #fff; color: #5a5445; border-color: #d8d0bd; }
   input::placeholder, textarea::placeholder { color: #bdb5a4; opacity: 1; }
@@ -197,6 +202,7 @@
   .jr-form input { background-image: none; padding-right: 8px; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
   .jr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 9px 4px; border-bottom: 1px solid #ece6d8; }
+  .jr-row:last-child { border-bottom: none; }
   .jr-row-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
   .jr-row-datewrap { flex-shrink: 0; }
   .jr-row-date { font-size: 14px; font-weight: 600; white-space: nowrap; }
@@ -212,6 +218,7 @@
   .jr-rowtag-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
   .jr-cloudtag-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
   .jr-cloudtag-master.on { background: #3a6b2a; border-color: #3a6b2a; }
+  .jr-cloudtag.on span { color: #cfe3c4; }
   .jr-cloudtag-master span { color: #b0a894; }
   .jr-tagpill-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
   .jr-tagsep { flex-basis: 100%; height: 1px; background: #ece6d8; margin: 4px 0; }
@@ -1585,6 +1592,12 @@ function renderStatsPanelEnd() {}
 function ouvrirFiche(id) {
   detailId = (detailId === id) ? null : id;
   render();
+  if (!detailId) return;
+  const z = document.getElementById("jrDetail");
+  if (z && z.scrollIntoView) {
+    try { z.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+    catch (e) { /* navigateur ancien : on ne bouge pas */ }
+  }
 }
 
 // Palette sobre, une teinte par collection, attribuée dans l'ordre des onglets
@@ -1669,9 +1682,10 @@ function ficheHtml(e) {
       ${(e.tags||[]).map((t,i) => `<span class="jr-tagpill ${estMaster(t)?"jr-tagpill-master":""}">${escapeHtml(libelleTag(t))}<button data-rm="${i}" aria-label="Retirer">×</button></span>`).join("") || '<span class="jr-notags">Aucun thème</span>'}
     </div>
     <div class="jr-tagadd">
-      <input type="text" id="jrNewTag" placeholder="Ajouter un thème — préfixe # pour un thème majeur" />
-      <button id="jrAddTagBtn">Ajouter</button>
+      <input type="text" id="jrNewTag" autocomplete="off" placeholder="Ajouter un thème — préfixe # pour un thème majeur" />
+      <button id="jrAddTagBtn" class="jr-btn">Ajouter</button>
     </div>
+    <div class="jr-sugg" id="jrSugg"></div>
     <label class="jr-lbl">Photo de la une</label>
     ${e.photo ? `<img class="jr-photo" src="${photoUrl(e.photo)}" alt="" loading="lazy">` : ""}
     <div class="jr-photo-actions">
@@ -1740,6 +1754,45 @@ function brancherFiche() {
       majFiche();
     });
   });
+
+  function tousLesThemes() {
+    const c = {};
+    entries.forEach(x => (x.tags||[]).forEach(t => { c[t] = (c[t]||0)+1; }));
+    return Object.keys(c).sort((a,b) => {
+      if (estMaster(a) !== estMaster(b)) return estMaster(a) ? -1 : 1;
+      return c[b]-c[a] || a.localeCompare(b);
+    });
+  }
+
+  function renderSugg() {
+    const z = document.getElementById("jrSugg");
+    if (!z) return;
+    const saisie = normalize((document.getElementById("jrNewTag") || {}).value || "");
+    const dispo = tousLesThemes()
+      .filter(t => !(e.tags||[]).includes(t))
+      .filter(t => !saisie || normalize(libelleTag(t)).includes(saisie));
+    if (!dispo.length) {
+      z.innerHTML = saisie ? `<span class="jr-sugg-vide">Aucun thème existant — « Ajouter » créera un nouveau thème.</span>` : "";
+      return;
+    }
+    z.innerHTML = `<span class="jr-sugg-lbl">Thèmes existants</span>`
+      + dispo.slice(0, 40).map(t =>
+          `<button class="jr-suggtag ${estMaster(t)?"jr-suggtag-master":""}" data-sugg="${escapeHtml(t)}">${escapeHtml(libelleTag(t))}</button>`
+        ).join("")
+      + (dispo.length > 40 ? `<span class="jr-sugg-vide">+${dispo.length-40} autres — tape pour filtrer</span>` : "");
+    z.querySelectorAll("[data-sugg]").forEach(b => {
+      b.addEventListener("click", async () => {
+        e.tags = e.tags || [];
+        if (!e.tags.includes(b.dataset.sugg)) e.tags.push(b.dataset.sugg);
+        await persistEntry(e);
+        renderTagCloud();
+        majFiche();
+      });
+    });
+  }
+  renderSugg();
+  const champTag = document.getElementById("jrNewTag");
+  if (champTag) champTag.addEventListener("input", renderSugg);
 
   const addTag = async () => {
     const input = document.getElementById("jrNewTag");
