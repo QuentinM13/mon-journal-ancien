@@ -186,6 +186,15 @@
   .jr-coledit input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; font-family: inherit; }
   .jr-coledit-note { font-size: 11px; color: #8a8070; margin: 5px 0 0; line-height: 1.4; }
   .jr-coledit-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
+  .jr-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 13px; font-family: inherit; cursor: pointer; }
+  .jr-btn-sec { background: #fff; color: #5a5445; border-color: #d8d0bd; }
+  input::placeholder, textarea::placeholder { color: #bdb5a4; opacity: 1; }
+  .jr-form select, .jr-form input, #jrBulkPanel select {
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%238a8070' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 26px;
+  }
+  .jr-form input { background-image: none; padding-right: 8px; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
   .jr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 9px 4px; border-bottom: 1px solid #ece6d8; }
   .jr-row-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
@@ -472,7 +481,7 @@ const SEED_HUMA = [
 
 const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const STATUS_LABEL = { d: "Disponible", s: "Numéro spécial", v: "Vendu", r: "Réservé" };
-const RESERVE_DAYS = 4;
+const RESERVE_DAYS = 7;
 const STORAGE_KEY = "journaux-entries-v7";
 const COLLECTIONS_KEY = "journaux-collections-v7";
 const DEFAULT_COLLECTIONS = [
@@ -619,7 +628,8 @@ function toRow(e) {
     note: e.note || "", suppose: !!e.guessed,
     reserve_jusqua: e.reservedUntil || null,
     vendu_le: e.venduLe ? new Date(e.venduLe).toISOString() : null,
-    photo: e.photo || null
+    photo: e.photo || null,
+    statut_avant: e.statutAvant || null
   };
 }
 function fromRow(r) {
@@ -630,7 +640,8 @@ function fromRow(r) {
     note: r.note || "", guessed: !!r.suppose,
     reservedUntil: r.reserve_jusqua ? Number(r.reserve_jusqua) : null,
     venduLe: r.vendu_le ? new Date(r.vendu_le).getTime() : null,
-    photo: r.photo || null
+    photo: r.photo || null,
+    statutAvant: r.statut_avant || null
   };
 }
 
@@ -925,8 +936,8 @@ function renderColEdit() {
     <input type="text" id="jrColGallica" value="${escapeHtml(col.gallica || "")}" placeholder="https://gallica.bnf.fr/ark:/...">
     <p class="jr-coledit-note">${nb} journaux dans cette collection.</p>
     <div class="jr-bk-actions">
-      <button id="jrColSave">Enregistrer</button>
-      <button id="jrColCancel" class="jr-panier-vider">Annuler</button>
+      <button id="jrColSave" class="jr-btn">Enregistrer</button>
+      <button id="jrColCancel" class="jr-btn jr-btn-sec">Annuler</button>
     </div>
     <p class="jr-coledit-msg" id="jrColMsg"></p>
   </div>`;
@@ -981,7 +992,7 @@ function renderAlerts() {
       <div class="jr-alert-row">
         <span>${e.day} ${MOIS[e.month-1]} ${e.year}${collections.length > 1 ? ' · ' + colName(e.collectionId) : ''}</span>
         <span class="jr-alert-btns">
-          <button data-action="extend" data-id="${e.id}">Prolonger 4j</button>
+          <button data-action="extend" data-id="${e.id}">Prolonger ${RESERVE_DAYS}j</button>
           <button data-action="release" data-id="${e.id}">Remettre dispo</button>
         </span>
       </div>`).join("")}
@@ -993,7 +1004,7 @@ function renderAlerts() {
       if (btn.dataset.action === "extend") {
         entry.reservedUntil = Date.now() + RESERVE_DAYS * 86400000;
       } else {
-        setStatut(entry, "d");
+        setStatut(entry, entry.statutAvant || "d");
       }
       await persistEntry(entry);
       render();
@@ -1026,9 +1037,11 @@ function renderList() {
     let sub = e.title || "";
     let cls = e.guessed && e.title ? "jr-row-tag jr-guessed" : "jr-row-tag";
     if (e.guessed && e.title) sub = "≈ " + sub;
-    if (e.status === "r" && e.reservedUntil) {
-      const dl = daysLeft(e.reservedUntil);
-      sub = (dl > 0 ? `expire dans ${dl}j` : "réservation expirée") + (e.title ? " · " + e.title : "");
+    if (e.status === "r") {
+      const info = e.reservedUntil
+        ? (daysLeft(e.reservedUntil) > 0 ? `expire dans ${daysLeft(e.reservedUntil)}j` : "réservation expirée")
+        : "réservation sans limite";
+      sub = info + (e.title ? " · " + e.title : "");
       cls = "jr-row-tag";
     }
     const cc = collCouleur(e.collectionId);
@@ -1047,7 +1060,8 @@ function renderList() {
             <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-set="d" data-eid="${e.id}">Disponible</button>
             <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-set="s" data-eid="${e.id}">Spécial</button>
             <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-set="v" data-eid="${e.id}">Vendu</button>
-            <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-set="r" data-eid="${e.id}">Réservé</button>
+            <button class="jr-badge jr-badge-r ${e.status==='r'&&e.reservedUntil?'cur':''}" data-set="r" data-eid="${e.id}">Réservé ${RESERVE_DAYS}j</button>
+            <button class="jr-badge jr-badge-r ${e.status==='r'&&!e.reservedUntil?'cur':''}" data-set="r" data-perm="1" data-eid="${e.id}">Réservé sans limite</button>
           </div>
           <button class="jr-pickcancel" data-cancelstatus="1">✕</button>
         </div>
@@ -1092,7 +1106,7 @@ function renderList() {
     btn.addEventListener("click", async () => {
       const entry = entries.find(x => x.id === btn.dataset.eid);
       if (!entry) return;
-      setStatut(entry, btn.dataset.set);
+      setStatut(entry, btn.dataset.set, !!btn.dataset.perm);
       statusEditId = null;
       await persistEntry(entry);
       render();
@@ -1404,9 +1418,15 @@ async function supprimerFichier(nom) {
   });
 }
 
-function setStatut(e, statut) {
+function setStatut(e, statut, permanent) {
+  if (statut === "r") {
+    if (e.status !== "r") e.statutAvant = (e.status === "s") ? "s" : "d";
+    e.reservedUntil = permanent ? null : Date.now() + RESERVE_DAYS * 86400000;
+  } else {
+    e.reservedUntil = null;
+    e.statutAvant = null;
+  }
   e.status = statut;
-  e.reservedUntil = statut === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
   if (statut === "v") { if (!e.venduLe) e.venduLe = Date.now(); }
   else { e.venduLe = null; }
 }
@@ -1462,8 +1482,8 @@ function renderStatsPanel() {
     if (tot) ecoul[c.name] = Math.round(v/tot*100);
   });
 
-  const bientot = entries.filter(e => e.status === "r" && e.reservedUntil)
-    .sort((a,b) => a.reservedUntil - b.reservedUntil);
+  const bientot = entries.filter(e => e.status === "r")
+    .sort((a,b) => (a.reservedUntil || Infinity) - (b.reservedUntil || Infinity));
 
   const dispo = mine.filter(e => e.status === "d" || e.status === "s").length;
 
@@ -1546,10 +1566,10 @@ function renderStatsPanel() {
 
       <h3>Réservations en cours</h3>
       ${bientot.length ? bientot.map(e => {
-        const j = daysLeft(e.reservedUntil);
-        return `<div class="jr-resa ${j<=0?"jr-resa-exp":""}">
+        const j = e.reservedUntil ? daysLeft(e.reservedUntil) : null;
+        return `<div class="jr-resa ${j !== null && j<=0 ? "jr-resa-exp" : ""}">
           <span>${e.day} ${MOIS[e.month-1]} ${e.year} <em>${escapeHtml(collName(e.collectionId))}</em></span>
-          <span>${j > 0 ? j + " j" : "expirée"}</span>
+          <span>${j === null ? "sans limite" : (j > 0 ? j + " j" : "expirée")}</span>
         </div>`;
       }).join("") : `<p class="jr-stat-vide">Aucune réservation en cours.</p>`}
     </div>`;
@@ -1633,7 +1653,8 @@ function ficheHtml(e) {
       <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-dset="d">Disponible</button>
       <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-dset="s">Spécial</button>
       <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-dset="v">Vendu</button>
-      <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-dset="r">Réservé</button>
+      <button class="jr-badge jr-badge-r ${e.status==='r'&&e.reservedUntil?'cur':''}" data-dset="r">Réservé ${RESERVE_DAYS}j</button>
+      <button class="jr-badge jr-badge-r ${e.status==='r'&&!e.reservedUntil?'cur':''}" data-dset="r" data-dperm="1">Réservé sans limite</button>
     </div>
     <label class="jr-lbl">Titre / description de la une</label>
     ${e.guessed && e.title ? '<p class="jr-guesswarn">≈ Titre déduit de la date, pas lu sur le journal — à vérifier avant de l\'annoncer à un client.</p>' : ''}
@@ -1699,7 +1720,7 @@ function brancherFiche() {
 
   zone.querySelectorAll("[data-dset]").forEach(btn => {
     btn.addEventListener("click", async () => {
-      setStatut(e, btn.dataset.dset);
+      setStatut(e, btn.dataset.dset, !!btn.dataset.dperm);
       await persistEntry(e);
       renderStats();
       majFiche();
@@ -2168,6 +2189,16 @@ function planTags() {
   retire("Front de l'Ouest");
   retire("Guerre");
   retire("Orient");
+  retire("Travail");
+  retire("Mémoire");
+  retire("Reconstruction");
+  retire("Politique");
+  retire("Économie");
+  retire("Transports");
+  retire("Sport");
+  retire("Vie quotidienne");
+  retire("Histoire");
+  retire("Après-guerre");
   return ops;
 }
 
