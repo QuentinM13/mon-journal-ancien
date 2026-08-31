@@ -29,6 +29,8 @@
   .jr-tab { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; cursor: pointer; color: #8a8070; font-family: inherit; }
   .jr-tab.active { background: #2b2620; color: #fff; border-color: #2b2620; }
   .jr-row-open { cursor: pointer; min-width: 0; }
+  .jr-tab-n { font-size: 10px; opacity: .6; }
+  .jr-tab-plus { font-size: 12px; padding: 7px 12px; border-radius: 999px; border: 1px solid #e4ddcd; background: #f2eee4; cursor: pointer; color: #5a5445; font-family: inherit; }
   .jr-tab-add { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px dashed #c9c0aa; background: #fff; cursor: pointer; color: #5a5445; }
   .jr-newcol { display: flex; gap: 8px; margin-bottom: 1.25rem; }
   .jr-newcol input { flex: 1; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 8px; font-size: 13px; }
@@ -514,6 +516,7 @@ let pendingDeleteId = null;
 let statusEditId = null;
 let viewMode = "liste";
 let colEditOuvert = false;
+let tabsOpen = false;
 let searchQuery = "";
 let detailId = null;
 
@@ -904,11 +907,35 @@ function renderDisclaimer() {
 }
 
 function renderTabs() {
-  const tabsHtml = `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes (${entries.length})</button>`
-    + collections.map(c =>
-    `<button class="jr-tab ${c.id===activeCollectionId?'active':''}" data-col="${c.id}" style="${c.id===activeCollectionId?`background:${collCouleur(c.id).bg};color:${collCouleur(c.id).fg};border-color:${collCouleur(c.id).bg}`:``}">${c.name}</button>`
-  ).join("") + `<button class="jr-tab-add" id="jrTabAdd">+ Nouvelle collection</button>`;
-  document.getElementById("jrTabs").innerHTML = tabsHtml;
+  const compte = {};
+  entries.forEach(e => { compte[e.collectionId] = (compte[e.collectionId]||0) + 1; });
+  // les collections les mieux fournies d'abord ; la couleur reste liée à la collection
+  const triees = collections.slice().sort((a,b) => (compte[b.id]||0) - (compte[a.id]||0));
+
+  const VISIBLES = 5;
+  const enAvant = triees.slice(0, VISIBLES);
+  let caches = triees.slice(VISIBLES);
+  // la collection ouverte reste toujours visible
+  if (!tabsOpen && caches.some(c => c.id === activeCollectionId)) {
+    const idx = caches.findIndex(c => c.id === activeCollectionId);
+    enAvant.push(caches[idx]);
+    caches = caches.filter((_,i) => i !== idx);
+  }
+  const aAfficher = tabsOpen ? triees : enAvant;
+
+  const btnColl = c => {
+    const k = collCouleur(c.id);
+    const actif = c.id === activeCollectionId;
+    return `<button class="jr-tab ${actif?'active':''}" data-col="${c.id}" style="${actif?`background:${k.bg};color:${k.fg};border-color:${k.bg}`:``}">${escapeHtml(c.name)} <span class="jr-tab-n">${compte[c.id]||0}</span></button>`;
+  };
+
+  document.getElementById("jrTabs").innerHTML =
+    `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes <span class="jr-tab-n">${entries.length}</span></button>`
+    + aAfficher.map(btnColl).join("")
+    + (caches.length && !tabsOpen ? `<button class="jr-tab-plus" id="jrTabsMore">+${caches.length} autres ▾</button>` : "")
+    + (tabsOpen ? `<button class="jr-tab-plus" id="jrTabsLess">Réduire ▴</button>` : "")
+    + `<button class="jr-tab-add" id="jrTabAdd">+ Nouvelle collection</button>`;
+
   document.querySelectorAll(".jr-tab").forEach(tab => {
     tab.addEventListener("click", () => {
       activeCollectionId = tab.dataset.col;
@@ -917,6 +944,10 @@ function renderTabs() {
       render();
     });
   });
+  const more = document.getElementById("jrTabsMore");
+  if (more) more.addEventListener("click", () => { tabsOpen = true; renderTabs(); });
+  const less = document.getElementById("jrTabsLess");
+  if (less) less.addEventListener("click", () => { tabsOpen = false; renderTabs(); });
   document.getElementById("jrAddToggle").style.display = activeCollectionId === "__all" ? "none" : "block";
   document.getElementById("jrTabAdd").addEventListener("click", () => {
     document.getElementById("jrNewColForm").style.display = "flex";
