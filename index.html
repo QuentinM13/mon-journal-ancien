@@ -174,6 +174,13 @@
   .jr-photo-btn { flex: 1; text-align: center; padding: 9px; border-radius: 6px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
   .jr-photo-del { padding: 9px 14px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; color: #8a8070; font-size: 13px; cursor: pointer; }
   .jr-photo-msg { font-size: 11px; color: #8a8070; margin: 6px 0 0; }
+  .jr-pied { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #f2eee4; text-align: center; }
+  .jr-kpi-clair div { background: #f7f4ee; color: #2b2620; border: 1px solid #e4ddcd; }
+  .jr-kpi-clair span { color: #8a8070; }
+  .jr-kpi-clair b { font-size: 17px; }
+  .jr-stat-sub { font-size: 11px; color: #8a8070; line-height: 1.5; margin: 0 0 8px; }
+  .jr-bar-vert { background: #3a6b2a !important; }
+  .jr-bar-v em { color: #b0a894; font-style: normal; font-size: 10px; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
   .jr-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
   .jr-row-date { width: 140px; flex-shrink: 0; font-size: 14px; font-weight: 600; }
@@ -205,11 +212,7 @@
 </style>
 <div class="jr-app" id="jrApp">
   <div id="jrStorageWarn"></div>
-  <div class="jr-topbar">
-    <span class="jr-mode" id="jrModeLbl"></span>
-    <button class="jr-loginbtn" id="jrLoginBtn">Connexion</button>
-  </div>
-  <div id="jrLoginPanel" style="display:none;"></div>
+  <div class="jr-topbar"><span class="jr-mode" id="jrModeLbl"></span></div>
   <div id="jrSetupPanel"></div>
   <div class="jr-masthead">
     <h1>Mon Journal Ancien</h1>
@@ -255,6 +258,10 @@
     <div id="jrBulkPanel" style="display:none;"></div>
     <p class="jr-bk-hint">Avant chaque mise à jour de l'outil : sauvegarde, puis restaure après. Tes modifications sont conservées.</p>
     <div class="jr-backup-panel" id="jrBackupPanel" style="display:none;"></div>
+  </div>
+  <div class="jr-pied">
+    <button class="jr-loginbtn" id="jrLoginBtn">Connexion</button>
+    <div id="jrLoginPanel" style="display:none;"></div>
   </div>
   <div class="jr-panier" id="jrPanierBar" style="display:none;"></div>
 </div>
@@ -1047,16 +1054,15 @@ function currentFiltered() {
 
 function renderView() {
   document.querySelectorAll(".jr-vbtn").forEach(b => {
-    b.className = "jr-vbtn" + (b.dataset.view === viewMode ? " on" : "");
+    const admin = b.dataset.view === "stats";
+    b.className = "jr-vbtn" + (admin ? " jr-vbtn-admin" : "") + (b.dataset.view === viewMode ? " on" : "");
+    b.style.display = admin && !isAdmin ? "none" : "inline-block";
     b.onclick = () => { viewMode = b.dataset.view; detailId = null; render(); };
   });
   document.getElementById("jrShare").onclick = copierLien;
 
   const liste = document.getElementById("jrList");
   const cal = document.getElementById("jrCalendar");
-  document.querySelectorAll(".jr-vbtn-admin").forEach(b => {
-    b.style.display = isAdmin ? "inline-block" : "none";
-  });
   if (!isAdmin && viewMode === "stats") viewMode = "liste";
 
   if (viewMode === "stats") {
@@ -1365,6 +1371,30 @@ function renderStatsPanel() {
 
   const dispo = mine.filter(e => e.status === "d" || e.status === "s").length;
 
+  // --- valeur : ce que ça rapporte ---
+  const prixDe = e => {
+    const c = collections.find(x => x.id === e.collectionId);
+    return (c && c.prix != null) ? Number(c.prix) : null;
+  };
+  const vendusValo = vendus.map(prixDe).filter(v => v != null);
+  const ca = vendusValo.reduce((a,b) => a+b, 0);
+  const prixMoyen = vendusValo.length ? (ca / vendusValo.length) : 0;
+  const stockValo = mine.filter(e => e.status === "d" || e.status === "s")
+    .map(prixDe).filter(v => v != null);
+  const valeurStock = stockValo.reduce((a,b) => a+b, 0);
+
+  // --- taux de vente par thème : ce qui part vraiment ---
+  const totTag = {}, vendTag = {};
+  mine.forEach(e => (e.tags||[]).forEach(t => {
+    totTag[t] = (totTag[t]||0)+1;
+    if (e.status === "v") vendTag[t] = (vendTag[t]||0)+1;
+  }));
+  const tauxTag = Object.keys(totTag)
+    .filter(t => totTag[t] >= 5)
+    .map(t => ({ t: t, pc: Math.round((vendTag[t]||0)/totTag[t]*100), n: vendTag[t]||0, tot: totTag[t] }))
+    .sort((a,b) => b.pc - a.pc || b.n - a.n)
+    .slice(0, 8);
+
   zone.innerHTML = `
     <div class="jr-stats-panel">
       <div class="jr-kpi">
@@ -1373,6 +1403,15 @@ function renderStatsPanel() {
         <div><b>${vendus.length}</b><span>vendus</span></div>
         <div><b>${bientot.length}</b><span>réservés</span></div>
       </div>
+
+      <h3>Argent</h3>
+      <div class="jr-kpi jr-kpi-clair">
+        <div><b>${ca} €</b><span>encaissé</span></div>
+        <div><b>${prixMoyen.toFixed(2)} €</b><span>panier moyen</span></div>
+        <div><b>${valeurStock} €</b><span>stock restant</span></div>
+        <div><b>${vendusValo.length}/${vendus.length}</b><span>ventes chiffrées</span></div>
+      </div>
+      ${vendusValo.length < vendus.length ? `<p class="jr-stat-note">Seules les collections avec un prix de base renseigné sont chiffrées. Renseigne les prix des autres collections pour un total complet.</p>` : ""}
 
       <h3>Ventes par mois</h3>
       ${dates.length ? `<div class="jr-mois">${moisCles.map(m => {
@@ -1385,7 +1424,15 @@ function renderStatsPanel() {
       }).join("")}</div>` : `<p class="jr-stat-vide">Les ventes seront datées à partir de maintenant.</p>`}
       ${sansDate ? `<p class="jr-stat-note">${sansDate} ventes antérieures ne sont pas datées : elles comptent dans les totaux mais pas dans ce graphique.</p>` : ""}
 
-      <h3>Ce qui se vend le mieux</h3>
+      <h3>Thèmes qui partent le mieux</h3>
+      <p class="jr-stat-sub">Part du stock déjà vendue pour chaque thème. C'est l'indicateur à regarder avant de racheter un lot : un thème à fort pourcentage se vend vite, même s'il représente peu de ventes en volume.</p>
+      ${tauxTag.length ? tauxTag.map(x => `<div class="jr-bar-l">
+        <span class="jr-bar-n">${escapeHtml(x.t)}</span>
+        <span class="jr-bar-t"><span class="jr-bar-f jr-bar-vert" style="width:${x.pc}%"></span></span>
+        <span class="jr-bar-v">${x.pc}% <em>${x.n}/${x.tot}</em></span>
+      </div>`).join("") : `<p class="jr-stat-vide">Pas encore assez de données.</p>`}
+
+      <h3>Volumes vendus</h3>
       <h4>Par thème</h4>
       ${barres(parTag, 8)}
       <h4>Par année de parution</h4>
@@ -1393,7 +1440,7 @@ function renderStatsPanel() {
       <h4>Par collection</h4>
       ${barres(parColl, 6)}
 
-      <h3>Taux d'écoulement</h3>
+      <h3>Taux d'écoulement par collection</h3>
       ${Object.entries(ecoul).map(([n,pc]) => `<div class="jr-bar-l">
         <span class="jr-bar-n">${escapeHtml(n)}</span>
         <span class="jr-bar-t"><span class="jr-bar-f" style="width:${pc}%"></span></span>
