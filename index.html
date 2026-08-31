@@ -191,12 +191,20 @@
   .jr-row-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
   .jr-row-datewrap { flex-shrink: 0; }
   .jr-row-date { font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .jr-row-bas { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
-  .jr-row-act { margin-left: auto; display: flex; align-items: center; gap: 4px; flex: 0 0 auto; order: 2; }
+  .jr-row-top { order: 1; }
+  .jr-row-act { order: 2; margin-left: auto; display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+  .jr-row-bas { order: 3; flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
   @media (min-width: 620px) {
-    .jr-row-bas { flex: 1 1 auto; }
+    .jr-row-bas { order: 2; flex: 1 1 auto; }
     .jr-row-act { order: 3; }
   }
+  .jr-cal-fiche { grid-column: 1 / -1; }
+  .jr-cal-sel { box-shadow: inset 0 0 0 2px #2b2620; }
+  .jr-detail-del { width: 100%; margin-top: 8px; padding: 9px; border-radius: 8px; border: 1px solid #e0cccc; background: #fff; color: #a33; font-size: 13px; cursor: pointer; }
+  .jr-delconf { margin-top: 8px; background: #fdf0f0; border: 1px solid #e6c4c4; border-radius: 8px; padding: 10px; font-size: 13px; color: #7a2a2a; }
+  .jr-delconf button { margin-top: 8px; margin-right: 6px; padding: 7px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  #jrDelYes { border: 1px solid #a33; background: #a33; color: #fff; }
+  #jrDelNo { border: 1px solid #d8d0bd; background: #fff; color: #5a5445; }
   .jr-rowtags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
   .jr-rowtag { font-size: 10px; padding: 1px 7px; border-radius: 4px; background: transparent; border: 1px solid #ddd5c3; color: #8a8070; white-space: nowrap; }
   .jr-rowtag-plus { border-style: dashed; color: #b0a894; }
@@ -248,7 +256,6 @@
     <button id="jrClear">Effacer</button>
   </div>
   <div class="jr-cloud" id="jrTagCloud"></div>
-  <div id="jrDetail"></div>
   <div class="jr-viewbar">
     <div class="jr-viewtoggle">
       <button class="jr-vbtn" data-view="liste">Liste</button>
@@ -784,8 +791,8 @@ function render() {
   renderStats();
   renderAlerts();
   renderTagCloud();
-  renderDetail();
   renderView();
+  brancherFiche();
   renderPanier();
   document.getElementById("jrAddToggle").style.display =
     (isAdmin && activeCollectionId !== "__all") ? "block" : "none";
@@ -1023,7 +1030,7 @@ function renderList() {
     const tagsHtml = tags.length
       ? `<span class="jr-rowtags">${tags.slice(0,4).map(t => `<span class="jr-rowtag">${escapeHtml(t)}</span>`).join("")}${tags.length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${tags.length-4}</span>` : ""}</span>`
       : "";
-    return `<div class="jr-row" data-id="${e.id}">
+    const ligne = `<div class="jr-row" data-id="${e.id}">
       ${statusEditId === e.id ? `
         <div class="jr-row-top">
           <div class="jr-row-date">${formatDate(e)}</div>
@@ -1052,16 +1059,10 @@ function renderList() {
       <div class="jr-row-act">
         ${isAdmin || (e.status !== "d" && e.status !== "s") ? "" :
           `<button class="jr-add-panier ${dansPanier(e.id) ? "on" : ""}" data-panier="${e.id}" aria-label="Ajouter à ma sélection">${dansPanier(e.id) ? "✓" : "+"}</button>`}
-        ${!isAdmin ? "" : `<div class="jr-row-actions">
-          ${pendingDeleteId === e.id ? `
-            <span class="jr-confirm-lbl">Supprimer ?</span>
-            <button data-yes="${e.id}" class="jr-confirm-yes">Oui</button>
-            <button data-no="${e.id}" class="jr-confirm-no">Non</button>
-          ` : `<button data-id="${e.id}" class="jr-del-btn" aria-label="Supprimer">✕</button>`}
-        </div>`}
       </div>
       `}
     </div>`;
+    return detailId === e.id ? ficheHtml(e) : ligne;
   }).join("");
 
   document.querySelectorAll(".jr-row-open").forEach(el => {
@@ -1194,7 +1195,8 @@ function renderCalendrier() {
           const best = liste.slice().sort((a,b) => PRIORITE[b.status] - PRIORITE[a.status])[0];
           const multi = liste.length > 1;
           const infobulle = liste.map(x => collName(x.collectionId) + (x.title ? " — " + x.title : "")).join(" / ");
-          cellules.push(`<button class="jr-cal-jour jr-cal-${best.status}${multi ? " jr-cal-multi" : ""}" data-cal="${best.id}" data-multi="${multi ? liste.length : ""}" data-date="${j}/${m}/${an}" title="${escapeHtml(infobulle)}">${j}</button>`);
+          const ouvert = liste.some(x => x.id === detailId);
+          cellules.push(`<button class="jr-cal-jour jr-cal-${best.status}${multi ? " jr-cal-multi" : ""}${ouvert ? " jr-cal-sel" : ""}" data-cal="${best.id}" data-multi="${multi ? liste.length : ""}" data-date="${j}/${m}/${an}" title="${escapeHtml(infobulle)}">${j}</button>`);
         } else {
           cellules.push(`<span class="jr-cal-jour jr-cal-off">${j}</span>`);
         }
@@ -1205,6 +1207,10 @@ function renderCalendrier() {
         <div class="jr-cal-entetes"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
         <div class="jr-cal-grille">${cellules.join("")}</div>
       </div>`);
+      const sel = entries.find(x => x.id === detailId);
+      if (sel && sel.year === an && sel.month === m) {
+        mois.push(`<div class="jr-cal-fiche">${ficheHtml(sel)}</div>`);
+      }
     }
     return `<div class="jr-cal-annee"><h2>${an}</h2><div class="jr-cal-mois-wrap">${mois.join("")}</div></div>`;
   }).join("");
@@ -1543,13 +1549,8 @@ function renderStatsPanel() {
 function renderStatsPanelEnd() {}
 
 function ouvrirFiche(id) {
-  detailId = id;
+  detailId = (detailId === id) ? null : id;
   render();
-  const z = document.getElementById("jrDetail");
-  if (z && z.scrollIntoView) {
-    try { z.scrollIntoView({ behavior: "smooth", block: "start" }); }
-    catch (e) { z.scrollIntoView(); }
-  }
 }
 
 // Palette sobre, une teinte par collection, attribuée dans l'ordre des onglets
@@ -1578,10 +1579,7 @@ function escapeHtml(s) {
   return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-function renderDetail() {
-  const zone = document.getElementById("jrDetail");
-  const e = entries.find(x => x.id === detailId);
-  if (!e) { zone.innerHTML = ""; return; }
+function ficheHtml(e) {
   const col = collections.find(c => c.id === e.collectionId) || {};
   const prixTxt = prixAffiche(e, col);
   const urlGallica = col.gallica
@@ -1593,7 +1591,7 @@ function renderDetail() {
     : "";
 
   if (!isAdmin) {
-    zone.innerHTML = `<div class="jr-detail">
+    return `<div class="jr-detail" id="jrDetail">
       <div class="jr-detail-head">
         <div>
           <div class="jr-detail-date">${formatDate(e)}</div>
@@ -1611,16 +1609,9 @@ function renderDetail() {
         : ""}
       ${lienGallica}
     </div>`;
-    document.getElementById("jrDetailClose").addEventListener("click", () => { detailId = null; render(); });
-    const bp = document.getElementById("jrDetailPanier");
-    if (bp) bp.addEventListener("click", () => {
-      basculerPanier(e.id);
-      renderDetail(); renderPanier(); renderView();
-    });
-    return;
   }
 
-  zone.innerHTML = `<div class="jr-detail">
+  return `<div class="jr-detail" id="jrDetail">
     <div class="jr-detail-head">
       <div>
         <div class="jr-detail-date">${formatDate(e)}</div>
@@ -1659,17 +1650,50 @@ function renderDetail() {
     <label class="jr-lbl">Note personnelle</label>
     <textarea id="jrDetailNote" rows="2" placeholder="Prix, état, remarques…">${escapeHtml(e.note)}</textarea>
     <button class="jr-detail-save" id="jrDetailSave">Enregistrer</button>
+    <button class="jr-detail-del" id="jrDetailDel">Supprimer ce journal</button>
+    <div id="jrDelConfirm"></div>
   </div>`;
+}
 
-  document.getElementById("jrDetailClose").addEventListener("click", () => { detailId = null; render(); });
+function majFiche() { renderView(); brancherFiche(); }
+
+function brancherFiche() {
+  const e = entries.find(x => x.id === detailId);
+  const zone = document.getElementById("jrDetail");
+  if (!e || !zone) return;
+
+  const close = document.getElementById("jrDetailClose");
+  if (close) close.addEventListener("click", () => { detailId = null; render(); });
+
+  const bp = document.getElementById("jrDetailPanier");
+  if (bp) bp.addEventListener("click", () => {
+    basculerPanier(e.id);
+    renderPanier(); majFiche();
+  });
+  if (!isAdmin) return;
+
+  const bdel = document.getElementById("jrDetailDel");
+  if (bdel) bdel.addEventListener("click", () => {
+    const z = document.getElementById("jrDelConfirm");
+    z.innerHTML = `<div class="jr-delconf">Supprimer définitivement ce journal ?
+      <button id="jrDelYes">Oui, supprimer</button>
+      <button id="jrDelNo">Annuler</button></div>`;
+    document.getElementById("jrDelNo").addEventListener("click", () => { z.innerHTML = ""; });
+    document.getElementById("jrDelYes").addEventListener("click", async () => {
+      const id = e.id;
+      entries = entries.filter(x => x.id !== id);
+      detailId = null;
+      await persistDelete(id);
+      render();
+    });
+  });
 
   zone.querySelectorAll("[data-dset]").forEach(btn => {
     btn.addEventListener("click", async () => {
       setStatut(e, btn.dataset.dset);
       await persistEntry(e);
       renderStats();
-      renderDetail();
-      renderList();
+      majFiche();
     });
   });
 
@@ -1677,8 +1701,8 @@ function renderDetail() {
     btn.addEventListener("click", async () => {
       e.tags.splice(parseInt(btn.dataset.rm,10), 1);
       await persistEntry(e);
-      renderDetail();
       renderTagCloud();
+      majFiche();
     });
   });
 
@@ -1690,8 +1714,8 @@ function renderDetail() {
     if (!e.tags.some(t => normalize(t) === normalize(val))) e.tags.push(val);
     input.value = "";
     await persistEntry(e);
-    renderDetail();
     renderTagCloud();
+    majFiche();
   };
   document.getElementById("jrAddTagBtn").addEventListener("click", addTag);
   document.getElementById("jrNewTag").addEventListener("keydown", ev => { if (ev.key === "Enter") addTag(); });
@@ -1706,7 +1730,7 @@ function renderDetail() {
     try {
       const ko = await envoyerPhoto(e, f);
       msg.textContent = "✓ Photo enregistrée (" + ko + " Ko)";
-      renderDetail();
+      majFiche();
     } catch (err) {
       msg.style.color = "#a33";
       msg.textContent = "✕ " + err.message;
@@ -1718,7 +1742,7 @@ function renderDetail() {
     e.photo = null;
     await persistEntry(e);
     if (anc) { try { await supprimerFichier(anc); } catch (err) {} }
-    renderDetail();
+    majFiche();
   });
 
   document.getElementById("jrDetailSave").addEventListener("click", async () => {
