@@ -28,8 +28,7 @@
   .jr-tabs { display: flex; gap: 4px; margin-bottom: 1.25rem; flex-wrap: wrap; border-bottom: 1px solid #ece6d8; padding-bottom: 10px; }
   .jr-tab { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; cursor: pointer; color: #8a8070; font-family: inherit; }
   .jr-tab.active { background: #2b2620; color: #fff; border-color: #2b2620; }
-  .jr-row-open { display: flex; align-items: center; cursor: pointer; min-width: 0; flex-shrink: 0; }
-  .jr-row-open2 { flex: 1; }
+  .jr-row-open { cursor: pointer; min-width: 0; }
   .jr-tab-add { font-size: 13px; padding: 7px 13px; border-radius: 999px; border: 1px dashed #c9c0aa; background: #fff; cursor: pointer; color: #5a5445; }
   .jr-newcol { display: flex; gap: 8px; margin-bottom: 1.25rem; }
   .jr-newcol input { flex: 1; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 8px; font-size: 13px; }
@@ -187,8 +186,15 @@
   .jr-coledit-note { font-size: 11px; color: #8a8070; margin: 5px 0 0; line-height: 1.4; }
   .jr-coledit-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
-  .jr-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
-  .jr-row-date { width: 140px; flex-shrink: 0; font-size: 14px; font-weight: 600; }
+  .jr-row { display: block; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
+  .jr-row-top { display: flex; align-items: center; gap: 8px; }
+  .jr-row-spacer { flex: 1; }
+  .jr-row-datewrap { flex-shrink: 0; }
+  .jr-row-date { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .jr-row-bas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 5px; }
+  .jr-rowtags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+  .jr-rowtag { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: #f2eee4; color: #7a7362; white-space: nowrap; }
+  .jr-rowtag-plus { background: transparent; color: #b0a894; }
   .jr-row-year { color: #8a8070; font-weight: 400; }
   .jr-badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
   .jr-badge-d { background: #e3f0dc; color: #3a6b2a; }
@@ -201,7 +207,7 @@
   .jr-statuspick button { border: 1px solid transparent; cursor: pointer; font-family: inherit; opacity: 0.55; }
   .jr-statuspick button.cur { opacity: 1; border-color: #2b2620; }
   .jr-pickcancel { background: none; border: none; color: #8a8070; font-size: 13px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
-  .jr-row-tag { font-size: 12px; color: #8a8070; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; }
+  .jr-row-tag { font-size: 12px; color: #8a8070; line-height: 1.35; }
   .jr-row-actions button { font-size: 12px; padding: 5px 8px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; cursor: pointer; color: #8a8070; }
   .jr-empty { text-align: center; padding: 2rem 1rem; color: #8a8070; font-size: 14px; }
   .jr-addbar { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #ece6d8; }
@@ -1007,35 +1013,46 @@ function renderList() {
     }
     const colTag = activeCollectionId === "__all"
       ? `<span class="jr-colchip">${escapeHtml(collName(e.collectionId))}</span>` : "";
+    const tags = e.tags || [];
+    const tagsHtml = tags.length
+      ? `<span class="jr-rowtags">${tags.slice(0,4).map(t => `<span class="jr-rowtag">${escapeHtml(t)}</span>`).join("")}${tags.length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${tags.length-4}</span>` : ""}</span>`
+      : "";
     return `<div class="jr-row" data-id="${e.id}">
       ${statusEditId === e.id ? `
-        <div class="jr-row-date">${formatDate(e)}</div>
-        <div class="jr-statuspick">
-          <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-set="d" data-eid="${e.id}">Disponible</button>
-          <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-set="s" data-eid="${e.id}">Spécial</button>
-          <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-set="v" data-eid="${e.id}">Vendu</button>
-          <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-set="r" data-eid="${e.id}">Réservé</button>
+        <div class="jr-row-top">
+          <div class="jr-row-date">${formatDate(e)}</div>
+          <div class="jr-statuspick">
+            <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-set="d" data-eid="${e.id}">Disponible</button>
+            <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-set="s" data-eid="${e.id}">Spécial</button>
+            <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-set="v" data-eid="${e.id}">Vendu</button>
+            <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-set="r" data-eid="${e.id}">Réservé</button>
+          </div>
+          <button class="jr-pickcancel" data-cancelstatus="1">✕</button>
         </div>
-        <button class="jr-pickcancel" data-cancelstatus="1">✕</button>
       ` : `
-      <div class="jr-row-open" data-open="${e.id}">
-        <div class="jr-row-date">${formatDate(e)}</div>
+      <div class="jr-row-top">
+        <div class="jr-row-open jr-row-datewrap" data-open="${e.id}">
+          <span class="jr-row-date">${formatDate(e)}</span>
+        </div>
+        ${isAdmin
+          ? `<button class="jr-badge jr-badge-${e.status} jr-badge-btn" data-status="${e.id}">${STATUS_LABEL[e.status]}</button>`
+          : `<span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>`}
+        <span class="jr-row-spacer"></span>
+        ${isAdmin || (e.status !== "d" && e.status !== "s") ? "" :
+          `<button class="jr-add-panier ${dansPanier(e.id) ? "on" : ""}" data-panier="${e.id}" aria-label="Ajouter à ma sélection">${dansPanier(e.id) ? "✓" : "+"}</button>`}
+        ${!isAdmin ? "" : `<div class="jr-row-actions">
+          ${pendingDeleteId === e.id ? `
+            <span class="jr-confirm-lbl">Supprimer ?</span>
+            <button data-yes="${e.id}" class="jr-confirm-yes">Oui</button>
+            <button data-no="${e.id}" class="jr-confirm-no">Non</button>
+          ` : `<button data-id="${e.id}" class="jr-del-btn" aria-label="Supprimer">✕</button>`}
+        </div>`}
       </div>
-      ${isAdmin
-        ? `<button class="jr-badge jr-badge-${e.status} jr-badge-btn" data-status="${e.id}">${STATUS_LABEL[e.status]}</button>`
-        : `<span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>`}
-      <div class="jr-row-open jr-row-open2" data-open="${e.id}">
-        <div class="${cls}">${colTag}${escapeHtml(sub)}</div>
-      </div>
-      ${isAdmin || (e.status !== "d" && e.status !== "s") ? "" :
-        `<button class="jr-add-panier ${dansPanier(e.id) ? "on" : ""}" data-panier="${e.id}" aria-label="Ajouter à ma sélection">${dansPanier(e.id) ? "✓" : "+"}</button>`}
-      ${!isAdmin ? "" : `<div class="jr-row-actions">
-        ${pendingDeleteId === e.id ? `
-          <span class="jr-confirm-lbl">Supprimer ?</span>
-          <button data-yes="${e.id}" class="jr-confirm-yes">Oui</button>
-          <button data-no="${e.id}" class="jr-confirm-no">Non</button>
-        ` : `<button data-id="${e.id}" class="jr-del-btn" aria-label="Supprimer">✕</button>`}
-      </div>`}
+      ${(colTag || sub || tagsHtml) ? `<div class="jr-row-open jr-row-bas" data-open="${e.id}">
+        ${colTag}
+        ${sub ? `<span class="${cls}">${escapeHtml(sub)}</span>` : ""}
+        ${tagsHtml}
+      </div>` : ""}
       `}
     </div>`;
   }).join("");
