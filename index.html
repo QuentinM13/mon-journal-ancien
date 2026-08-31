@@ -68,7 +68,7 @@
   .jr-lbl { display: block; font-size: 11px; color: #8a8070; text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 0 4px; }
   .jr-detail input[type=text], .jr-detail textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; font-family: inherit; }
   .jr-tagwrap { display: flex; flex-wrap: wrap; gap: 5px; }
-  .jr-tagpill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 4px 6px 4px 10px; border-radius: 999px; background: #ece6d8; color: #5a5445; }
+  .jr-tagpill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 6px 3px 10px; border-radius: 5px; background: transparent; border: 1px solid #ddd5c3; color: #7a7362; }
   .jr-tagpill button { background: none; border: none; color: #a09781; cursor: pointer; font-size: 14px; padding: 0 3px; line-height: 1; }
   .jr-notags { font-size: 12px; color: #b0a894; font-style: italic; }
   .jr-tagadd { display: flex; gap: 6px; margin-top: 8px; }
@@ -85,7 +85,8 @@
   .jr-bk-msg { font-size: 12px; margin-top: 8px; }
   .jr-bk-hint { font-size: 11px; color: #8a8070; margin: 6px 0 0; line-height: 1.5; }
   .jr-guessed { font-style: italic; color: #a09781; }
-  .jr-colchip { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #ece6d8; color: #7a7362; margin-right: 6px; font-style: normal; }
+  .jr-colchip { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: .2px; font-style: normal; }
+  .jr-detail-prixinline { font-size: 11px; color: #8a8070; margin-left: 4px; }
   .jr-detail-coll { font-size: 11px; color: #8a8070; margin-top: 2px; }
   .jr-guesswarn { font-size: 11px; color: #92650c; background: #fdf5e4; border-radius: 6px; padding: 6px 8px; margin: 0 0 6px; line-height: 1.4; }
   .jr-topbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 8px 0; }
@@ -193,8 +194,8 @@
   .jr-row-date { font-size: 14px; font-weight: 600; white-space: nowrap; }
   .jr-row-bas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 5px; }
   .jr-rowtags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
-  .jr-rowtag { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: #f2eee4; color: #7a7362; white-space: nowrap; }
-  .jr-rowtag-plus { background: transparent; color: #b0a894; }
+  .jr-rowtag { font-size: 10px; padding: 1px 7px; border-radius: 4px; background: transparent; border: 1px solid #ddd5c3; color: #8a8070; white-space: nowrap; }
+  .jr-rowtag-plus { border-style: dashed; color: #b0a894; }
   .jr-row-year { color: #8a8070; font-weight: 400; }
   .jr-badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
   .jr-badge-d { background: #e3f0dc; color: #3a6b2a; }
@@ -863,7 +864,7 @@ function renderDisclaimer() {
 function renderTabs() {
   const tabsHtml = `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes (${entries.length})</button>`
     + collections.map(c =>
-    `<button class="jr-tab ${c.id===activeCollectionId?'active':''}" data-col="${c.id}">${c.name}</button>`
+    `<button class="jr-tab ${c.id===activeCollectionId?'active':''}" data-col="${c.id}" style="${c.id===activeCollectionId?`background:${collCouleur(c.id).bg};color:${collCouleur(c.id).fg};border-color:${collCouleur(c.id).bg}`:`border-left:3px solid ${collCouleur(c.id).bg}`}">${c.name}</button>`
   ).join("") + `<button class="jr-tab-add" id="jrTabAdd">+ Nouvelle collection</button>`;
   document.getElementById("jrTabs").innerHTML = tabsHtml;
   document.querySelectorAll(".jr-tab").forEach(tab => {
@@ -1011,8 +1012,9 @@ function renderList() {
       sub = (dl > 0 ? `expire dans ${dl}j` : "réservation expirée") + (e.title ? " · " + e.title : "");
       cls = "jr-row-tag";
     }
+    const cc = collCouleur(e.collectionId);
     const colTag = activeCollectionId === "__all"
-      ? `<span class="jr-colchip">${escapeHtml(collName(e.collectionId))}</span>` : "";
+      ? `<span class="jr-colchip" style="background:${cc.bg};color:${cc.fg}">${escapeHtml(collName(e.collectionId))}</span>` : "";
     const tags = e.tags || [];
     const tagsHtml = tags.length
       ? `<span class="jr-rowtags">${tags.slice(0,4).map(t => `<span class="jr-rowtag">${escapeHtml(t)}</span>`).join("")}${tags.length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${tags.length-4}</span>` : ""}</span>`
@@ -1545,6 +1547,23 @@ function ouvrirFiche(id) {
   }
 }
 
+// Palette sobre, une teinte par collection, attribuée dans l'ordre des onglets
+const PALETTE_COLL = [
+  { bg: "#2f4858", fg: "#ffffff" }, // ardoise
+  { bg: "#7a3b3b", fg: "#ffffff" }, // brique
+  { bg: "#3f5f3a", fg: "#ffffff" }, // olive
+  { bg: "#6b4a7a", fg: "#ffffff" }, // prune
+  { bg: "#8a5a2b", fg: "#ffffff" }, // tabac
+  { bg: "#2b5f66", fg: "#ffffff" }, // sarcelle
+  { bg: "#5a4632", fg: "#ffffff" }, // sépia
+  { bg: "#7a3f5f", fg: "#ffffff" }  // grenat
+];
+
+function collCouleur(id) {
+  const i = collections.findIndex(c => c.id === id);
+  return PALETTE_COLL[(i < 0 ? 0 : i) % PALETTE_COLL.length];
+}
+
 function collName(id) {
   const c = collections.find(x => x.id === id);
   return c ? c.name : "?";
@@ -1573,7 +1592,7 @@ function renderDetail() {
       <div class="jr-detail-head">
         <div>
           <div class="jr-detail-date">${formatDate(e)}</div>
-          <div class="jr-detail-coll">${escapeHtml(collName(e.collectionId))}</div>
+          <div class="jr-detail-coll"><span class="jr-colchip" style="background:${collCouleur(e.collectionId).bg};color:${collCouleur(e.collectionId).fg}">${escapeHtml(collName(e.collectionId))}</span></div>
         </div>
         <button id="jrDetailClose" aria-label="Fermer">✕</button>
       </div>
@@ -1600,7 +1619,7 @@ function renderDetail() {
     <div class="jr-detail-head">
       <div>
         <div class="jr-detail-date">${formatDate(e)}</div>
-        <div class="jr-detail-coll">${escapeHtml(collName(e.collectionId))}${prixTxt ? " · " + escapeHtml(prixTxt) : ""}</div>
+        <div class="jr-detail-coll"><span class="jr-colchip" style="background:${collCouleur(e.collectionId).bg};color:${collCouleur(e.collectionId).fg}">${escapeHtml(collName(e.collectionId))}</span>${prixTxt ? ` <span class="jr-detail-prixinline">${escapeHtml(prixTxt)}</span>` : ""}</div>
       </div>
       <button id="jrDetailClose" aria-label="Fermer">✕</button>
     </div>
