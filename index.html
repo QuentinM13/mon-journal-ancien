@@ -75,7 +75,7 @@
   .jr-tagadd input { flex: 1; }
   .jr-tagadd button { padding: 8px 12px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .jr-detail-save { width: 100%; margin-top: 14px; padding: 10px; border-radius: 8px; border: 1px solid #2b2620; background: #2b2620; color: #fff; font-size: 14px; cursor: pointer; }
-  .jr-backup { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ece6d8; }
+  .jr-backup { margin-top: 1.5rem; }
   .jr-backup-btns { display: flex; gap: 8px; }
   .jr-backup-btns button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid #d8d0bd; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
   .jr-backup-panel { margin-top: 10px; }
@@ -174,7 +174,7 @@
   .jr-photo-btn { flex: 1; text-align: center; padding: 9px; border-radius: 6px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
   .jr-photo-del { padding: 9px 14px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; color: #8a8070; font-size: 13px; cursor: pointer; }
   .jr-photo-msg { font-size: 11px; color: #8a8070; margin: 6px 0 0; }
-  .jr-pied { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #f2eee4; text-align: center; }
+  .jr-pied { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid #ece6d8; text-align: center; }
   .jr-kpi-clair div { background: #f7f4ee; color: #2b2620; border: 1px solid #e4ddcd; }
   .jr-kpi-clair span { color: #8a8070; }
   .jr-kpi-clair b { font-size: 17px; }
@@ -200,6 +200,12 @@
   }
   .jr-cal-fiche { grid-column: 1 / -1; }
   .jr-cal-sel { box-shadow: inset 0 0 0 2px #2b2620; }
+  .jr-rowtag-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
+  .jr-cloudtag-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
+  .jr-cloudtag-master.on { background: #3a6b2a; border-color: #3a6b2a; }
+  .jr-cloudtag-master span { color: #b0a894; }
+  .jr-tagpill-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
+  .jr-tagsep { flex-basis: 100%; height: 1px; background: #ece6d8; margin: 4px 0; }
   .jr-detail-del { width: 100%; margin-top: 8px; padding: 9px; border-radius: 8px; border: 1px solid #e0cccc; background: #fff; color: #a33; font-size: 13px; cursor: pointer; }
   .jr-delconf { margin-top: 8px; background: #fdf0f0; border: 1px solid #e6c4c4; border-radius: 8px; padding: 10px; font-size: 13px; color: #7a2a2a; }
   .jr-delconf button { margin-top: 8px; margin-right: 6px; padding: 7px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
@@ -223,7 +229,7 @@
   .jr-row-tag { font-size: 12px; color: #8a8070; line-height: 1.35; }
   .jr-row-actions button { font-size: 12px; padding: 5px 8px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; cursor: pointer; color: #8a8070; }
   .jr-empty { text-align: center; padding: 2rem 1rem; color: #8a8070; font-size: 14px; }
-  .jr-addbar { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #ece6d8; }
+  .jr-addbar { margin-top: 1.25rem; }
   .jr-addbtn { width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
   .jr-form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
   .jr-form input, .jr-form select { padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 13px; }
@@ -238,7 +244,6 @@
   <div id="jrStorageWarn"></div>
   <div class="jr-topbar"><span class="jr-mode" id="jrModeLbl"></span></div>
   <div id="jrSetupPanel"></div>
-  <div id="jrColEdit"></div>
   <div class="jr-masthead">
     <h1>Mon Journal Ancien</h1>
   </div>
@@ -267,6 +272,7 @@
   <div class="jr-count" id="jrCount"></div>
   <div id="jrCalendar"></div>
   <div id="jrList"></div>
+  <div id="jrColEdit"></div>
   <div class="jr-addbar">
     <button class="jr-addbtn" id="jrAddToggle">+ Ajouter une date</button>
     <div class="jr-form" id="jrForm" style="display:none;"></div>
@@ -280,6 +286,8 @@
     <div id="jrCmdPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrBulkBtn">📦 Ajouter un lot de journaux</button>
     <div id="jrBulkPanel" style="display:none;"></div>
+    <button class="jr-cmdbtn" id="jrTagToolBtn">🏷 Réorganiser les thèmes</button>
+    <div id="jrTagToolPanel" style="display:none;"></div>
     <p class="jr-bk-hint">Avant chaque mise à jour de l'outil : sauvegarde, puis restaure après. Tes modifications sont conservées.</p>
     <div class="jr-backup-panel" id="jrBackupPanel" style="display:none;"></div>
   </div>
@@ -773,7 +781,7 @@ function parseSearch(q) {
 function matchesSearch(e, parsed) {
   if (!parsed) return true;
   if (parsed.text) {
-    return (e.tags || []).some(t => normalize(t).includes(parsed.text))
+    return (e.tags || []).some(t => normalize(libelleTag(t)).includes(parsed.text))
       || normalize(e.title).includes(parsed.text)
       || normalize(e.note).includes(parsed.text)
       || normalize(STATUS_LABEL[e.status]).includes(parsed.text);
@@ -794,7 +802,7 @@ function render() {
   renderView();
   brancherFiche();
   renderPanier();
-  document.getElementById("jrAddToggle").style.display =
+  document.querySelector(".jr-addbar").style.display =
     (isAdmin && activeCollectionId !== "__all") ? "block" : "none";
   document.getElementById("jrTabAdd").style.display = isAdmin ? "inline-block" : "none";
   document.querySelector(".jr-backup").style.display = isAdmin ? "block" : "none";
@@ -1027,8 +1035,9 @@ function renderList() {
     const colTag = activeCollectionId === "__all"
       ? `<span class="jr-colchip" style="background:${cc.bg};color:${cc.fg}">${escapeHtml(collName(e.collectionId))}</span>` : "";
     const tags = e.tags || [];
-    const tagsHtml = tags.length
-      ? `<span class="jr-rowtags">${tags.slice(0,4).map(t => `<span class="jr-rowtag">${escapeHtml(t)}</span>`).join("")}${tags.length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${tags.length-4}</span>` : ""}</span>`
+    const tagsTries = tags.slice().sort((a,b) => (estMaster(b)?1:0) - (estMaster(a)?1:0));
+    const tagsHtml = tagsTries.length
+      ? `<span class="jr-rowtags">${tagsTries.slice(0,4).map(t => `<span class="jr-rowtag ${estMaster(t)?"jr-rowtag-master":""}">${escapeHtml(libelleTag(t))}</span>`).join("")}${tagsTries.length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${tagsTries.length-4}</span>` : ""}</span>`
       : "";
     const ligne = `<div class="jr-row" data-id="${e.id}">
       ${statusEditId === e.id ? `
@@ -1603,7 +1612,7 @@ function ficheHtml(e) {
       <div class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</div>
       ${prixTxt ? `<div class="jr-prix">${escapeHtml(prixTxt)}</div>` : ""}
       ${e.title ? `<p class="jr-detail-titre ${e.guessed ? "jr-guessed" : ""}">${e.guessed ? "≈ " : ""}${escapeHtml(e.title)}</p>` : ""}
-      ${(e.tags||[]).length ? `<div class="jr-tagwrap">${e.tags.map(t => `<span class="jr-tagpill">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      ${(e.tags||[]).length ? `<div class="jr-tagwrap">${e.tags.slice().sort((a,b)=>(estMaster(b)?1:0)-(estMaster(a)?1:0)).map(t => `<span class="jr-tagpill ${estMaster(t)?"jr-tagpill-master":""}">${escapeHtml(libelleTag(t))}</span>`).join("")}</div>` : ""}
       ${(e.status === "d" || e.status === "s")
         ? `<button class="jr-detail-panier ${dansPanier(e.id) ? "on" : ""}" id="jrDetailPanier">${dansPanier(e.id) ? "✓ Dans ma sélection" : "+ Ajouter à ma sélection"}</button>`
         : ""}
@@ -1629,12 +1638,12 @@ function ficheHtml(e) {
     <label class="jr-lbl">Titre / description de la une</label>
     ${e.guessed && e.title ? '<p class="jr-guesswarn">≈ Titre déduit de la date, pas lu sur le journal — à vérifier avant de l\'annoncer à un client.</p>' : ''}
     <input type="text" id="jrDetailTitle" value="${escapeHtml(e.title)}" placeholder="Ex. Le Général Mangin" />
-    <label class="jr-lbl">Tags</label>
+    <label class="jr-lbl">Thèmes</label>
     <div class="jr-tagwrap" id="jrDetailTags">
-      ${(e.tags||[]).map((t,i) => `<span class="jr-tagpill">${escapeHtml(t)}<button data-rm="${i}" aria-label="Retirer">×</button></span>`).join("") || '<span class="jr-notags">Aucun tag</span>'}
+      ${(e.tags||[]).map((t,i) => `<span class="jr-tagpill ${estMaster(t)?"jr-tagpill-master":""}">${escapeHtml(libelleTag(t))}<button data-rm="${i}" aria-label="Retirer">×</button></span>`).join("") || '<span class="jr-notags">Aucun thème</span>'}
     </div>
     <div class="jr-tagadd">
-      <input type="text" id="jrNewTag" placeholder="Ajouter un tag (ex. Cartes, Généraux, Villes…)" />
+      <input type="text" id="jrNewTag" placeholder="Ajouter un thème — préfixe # pour un thème majeur" />
       <button id="jrAddTagBtn">Ajouter</button>
     </div>
     <label class="jr-lbl">Photo de la une</label>
@@ -1756,24 +1765,34 @@ function brancherFiche() {
   });
 }
 
+function estMaster(t) { return typeof t === "string" && t.charAt(0) === "#"; }
+function libelleTag(t) { return estMaster(t) ? t.slice(1) : t; }
+
 function renderTagCloud() {
   const zone = document.getElementById("jrTagCloud");
   const counts = {};
   entries.filter(inCollection).forEach(e => {
     (e.tags||[]).forEach(t => { counts[t] = (counts[t]||0) + 1; });
   });
-  const sorted = Object.keys(counts).sort((a,b) => counts[b]-counts[a] || a.localeCompare(b));
+  const sorted = Object.keys(counts).sort((a,b) => {
+    if (estMaster(a) !== estMaster(b)) return estMaster(a) ? -1 : 1;
+    return counts[b]-counts[a] || a.localeCompare(b);
+  });
   if (sorted.length === 0) { zone.innerHTML = ""; return; }
 
   const n = selectedTags.size;
-  const label = n === 0 ? `Tags (${sorted.length})` : `Tags · ${n} sélectionné${n>1?'s':''}`;
+  const nbMaster = sorted.filter(estMaster).length;
+  const label = n === 0 ? `Thèmes (${sorted.length})` : `Thèmes · ${n} sélectionné${n>1?'s':''}`;
 
   zone.innerHTML = `
     <button class="jr-tagtoggle ${n>0?'on':''}" id="jrTagToggle">
       <span>${label}</span><span class="jr-caret">${tagsOpen ? '▲' : '▼'}</span>
     </button>
     <div class="jr-tagmenu" style="display:${tagsOpen ? 'flex' : 'none'};">
-      ${sorted.map(t => `<button class="jr-cloudtag ${selectedTags.has(t)?'on':''}" data-tag="${escapeHtml(t)}">${escapeHtml(t)} <span>${counts[t]}</span></button>`).join("")}
+      ${sorted.map((t,i) => {
+        const sep = (i === nbMaster && nbMaster > 0) ? `<span class="jr-tagsep"></span>` : "";
+        return sep + `<button class="jr-cloudtag ${estMaster(t) ? "jr-cloudtag-master" : ""} ${selectedTags.has(t)?'on':''}" data-tag="${escapeHtml(t)}">${escapeHtml(libelleTag(t))} <span>${counts[t]}</span></button>`;
+      }).join("")}
       ${n > 0 ? `<button class="jr-clearTags" id="jrClearTags">Tout désélectionner</button>` : ""}
     </div>`;
 
@@ -1834,6 +1853,14 @@ function renderAddForm() {
     entries.push(nouveau);
     await persistEntry(nouveau);
     document.getElementById("jrForm").style.display = "none";
+    document.getElementById("jrNewDay").value = "";
+    document.getElementById("jrNewTitle").value = "";
+    detailId = nouveau.id;
+    searchQuery = "";
+    const inp = document.getElementById("jrSearch");
+    if (inp) inp.value = "";
+    activeFilters.clear();
+    viewMode = "liste";
     render();
   });
   document.getElementById("jrCancelBtn").addEventListener("click", () => {
@@ -2116,6 +2143,94 @@ document.getElementById("jrBulkBtn").addEventListener("click", () => {
   if (p.style.display === "block") { p.style.display = "none"; return; }
   p.style.display = "block";
   renderBulk();
+});
+
+// ---------- Réorganisation des thèmes ----------
+function planTags() {
+  const ops = [];
+  const ajout = (nom, test) => {
+    const cibles = entries.filter(e => test(e) && !(e.tags||[]).includes(nom));
+    if (cibles.length) ops.push({ type: "ajout", nom: nom, n: cibles.length, cibles: cibles });
+  };
+  const renomme = (avant, apres) => {
+    const cibles = entries.filter(e => (e.tags||[]).includes(avant));
+    if (cibles.length) ops.push({ type: "renomme", nom: avant, vers: apres, n: cibles.length, cibles: cibles });
+  };
+  const retire = (nom) => {
+    const cibles = entries.filter(e => (e.tags||[]).includes(nom));
+    if (cibles.length) ops.push({ type: "retire", nom: nom, n: cibles.length, cibles: cibles });
+  };
+
+  ajout("#Première Guerre mondiale", e => e.year >= 1914 && e.year <= 1918);
+  ajout("#Après-guerre", e => e.year >= 1919 && e.year <= 1921);
+  renomme("Conquête spatiale", "#Conquête spatiale");
+  renomme("Généraux", "Personnages");
+  retire("Front de l'Ouest");
+  retire("Guerre");
+  retire("Orient");
+  return ops;
+}
+
+function renderTagTool() {
+  const p = document.getElementById("jrTagToolPanel");
+  const ops = planTags();
+  if (!ops.length) {
+    p.innerHTML = `<p class="jr-cmd-msg">Rien à réorganiser, tout est déjà à jour.</p>`;
+    return;
+  }
+  const mot = { ajout: "Ajouter", renomme: "Renommer", retire: "Supprimer" };
+  p.innerHTML = `
+    <div class="jr-cmd-res">
+      ${ops.map(o => `<div class="jr-cmd-ligne">
+        <b>${mot[o.type]}</b>
+        <span>${escapeHtml(o.nom)}${o.vers ? " → " + escapeHtml(o.vers) : ""}</span>
+        <em>${o.n} journaux</em>
+      </div>`).join("")}
+      <p class="jr-cmd-msg">Les thèmes en # sont les thèmes majeurs, affichés en premier et mis en avant.</p>
+      <div class="jr-bk-actions"><button id="jrTagGo">Appliquer</button></div>
+      <p class="jr-cmd-msg" id="jrTagMsg"></p>
+    </div>`;
+
+  document.getElementById("jrTagGo").addEventListener("click", async () => {
+    const msg = document.getElementById("jrTagMsg");
+    const touches = new Set();
+    ops.forEach(o => {
+      o.cibles.forEach(e => {
+        e.tags = e.tags || [];
+        if (o.type === "ajout") e.tags.unshift(o.nom);
+        else if (o.type === "retire") e.tags = e.tags.filter(t => t !== o.nom);
+        else {
+          e.tags = e.tags.filter(t => t !== o.nom);
+          if (!e.tags.includes(o.vers)) e.tags.push(o.vers);
+        }
+        touches.add(e);
+      });
+    });
+    const liste = [...touches];
+    msg.textContent = `Enregistrement de ${liste.length} journaux…`;
+    if (cloudOk && isAdmin) {
+      try {
+        for (let i = 0; i < liste.length; i += 200) {
+          await rest("journaux", {
+            method: "POST",
+            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(liste.slice(i, i+200).map(toRow))
+          });
+        }
+      } catch (err) { msg.textContent = "✕ Échec : " + err.message; return; }
+    }
+    localSave();
+    msg.textContent = `✓ ${liste.length} journaux mis à jour.`;
+    selectedTags.clear();
+    render();
+  });
+}
+
+document.getElementById("jrTagToolBtn").addEventListener("click", () => {
+  const p = document.getElementById("jrTagToolPanel");
+  if (p.style.display === "block") { p.style.display = "none"; return; }
+  p.style.display = "block";
+  renderTagTool();
 });
 
 (async function init() {
