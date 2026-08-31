@@ -187,12 +187,16 @@
   .jr-coledit-note { font-size: 11px; color: #8a8070; margin: 5px 0 0; line-height: 1.4; }
   .jr-coledit-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
-  .jr-row { display: block; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
-  .jr-row-top { display: flex; align-items: center; gap: 8px; }
-  .jr-row-spacer { flex: 1; }
+  .jr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 9px 4px; border-bottom: 1px solid #ece6d8; }
+  .jr-row-top { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
   .jr-row-datewrap { flex-shrink: 0; }
   .jr-row-date { font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .jr-row-bas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 5px; }
+  .jr-row-bas { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
+  .jr-row-act { margin-left: auto; display: flex; align-items: center; gap: 4px; flex: 0 0 auto; order: 2; }
+  @media (min-width: 620px) {
+    .jr-row-bas { flex: 1 1 auto; }
+    .jr-row-act { order: 3; }
+  }
   .jr-rowtags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
   .jr-rowtag { font-size: 10px; padding: 1px 7px; border-radius: 4px; background: transparent; border: 1px solid #ddd5c3; color: #8a8070; white-space: nowrap; }
   .jr-rowtag-plus { border-style: dashed; color: #b0a894; }
@@ -864,7 +868,7 @@ function renderDisclaimer() {
 function renderTabs() {
   const tabsHtml = `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes (${entries.length})</button>`
     + collections.map(c =>
-    `<button class="jr-tab ${c.id===activeCollectionId?'active':''}" data-col="${c.id}" style="${c.id===activeCollectionId?`background:${collCouleur(c.id).bg};color:${collCouleur(c.id).fg};border-color:${collCouleur(c.id).bg}`:`border-left:3px solid ${collCouleur(c.id).bg}`}">${c.name}</button>`
+    `<button class="jr-tab ${c.id===activeCollectionId?'active':''}" data-col="${c.id}" style="${c.id===activeCollectionId?`background:${collCouleur(c.id).bg};color:${collCouleur(c.id).fg};border-color:${collCouleur(c.id).bg}`:``}">${c.name}</button>`
   ).join("") + `<button class="jr-tab-add" id="jrTabAdd">+ Nouvelle collection</button>`;
   document.getElementById("jrTabs").innerHTML = tabsHtml;
   document.querySelectorAll(".jr-tab").forEach(tab => {
@@ -1039,7 +1043,13 @@ function renderList() {
         ${isAdmin
           ? `<button class="jr-badge jr-badge-${e.status} jr-badge-btn" data-status="${e.id}">${STATUS_LABEL[e.status]}</button>`
           : `<span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>`}
-        <span class="jr-row-spacer"></span>
+      </div>
+      ${(colTag || sub || tagsHtml) ? `<div class="jr-row-open jr-row-bas" data-open="${e.id}">
+        ${colTag}
+        ${sub ? `<span class="${cls}">${escapeHtml(sub)}</span>` : ""}
+        ${tagsHtml}
+      </div>` : `<span class="jr-row-bas"></span>`}
+      <div class="jr-row-act">
         ${isAdmin || (e.status !== "d" && e.status !== "s") ? "" :
           `<button class="jr-add-panier ${dansPanier(e.id) ? "on" : ""}" data-panier="${e.id}" aria-label="Ajouter à ma sélection">${dansPanier(e.id) ? "✓" : "+"}</button>`}
         ${!isAdmin ? "" : `<div class="jr-row-actions">
@@ -1050,11 +1060,6 @@ function renderList() {
           ` : `<button data-id="${e.id}" class="jr-del-btn" aria-label="Supprimer">✕</button>`}
         </div>`}
       </div>
-      ${(colTag || sub || tagsHtml) ? `<div class="jr-row-open jr-row-bas" data-open="${e.id}">
-        ${colTag}
-        ${sub ? `<span class="${cls}">${escapeHtml(sub)}</span>` : ""}
-        ${tagsHtml}
-      </div>` : ""}
       `}
     </div>`;
   }).join("");
