@@ -453,7 +453,7 @@ const DEFAULT_COLLECTIONS = [
   { id: "default", name: "Le Petit Parisien — 3e impression", prix: 6,
     gallica: "https://gallica.bnf.fr/ark:/12148/cb34419111x/date" },
   { id: "pji", name: "Le Petit Journal illustré", prix: null,
-    gallica: "https://gallica.bnf.fr/ark:/12148/cb344191170/date" },
+    gallica: "https://gallica.bnf.fr/ark:/12148/cb32836564q/date" },
   { id: "monde", name: "Le Monde", prix: null, gallica: null },
   { id: "dauphine", name: "Le Dauphiné Libéré", prix: null, gallica: null },
   { id: "huma", name: "L'Humanité", prix: null, gallica: null }
@@ -1543,9 +1543,12 @@ function renderDetail() {
   if (!e) { zone.innerHTML = ""; return; }
   const col = collections.find(c => c.id === e.collectionId) || {};
   const prixTxt = prixAffiche(e, col);
-  const lienGallica = col.gallica
-    ? `<a class="jr-gallica" href="${col.gallica}" target="_blank" rel="noopener">Consulter ce titre sur Gallica (BnF) ↗</a>
-       <p class="jr-gallicanote">Archives publiques de la BnF. L'édition consultable peut différer de l'exemplaire proposé ici.</p>`
+  const urlGallica = col.gallica
+    ? (/\/date$/.test(col.gallica) ? col.gallica + e.year : col.gallica)
+    : null;
+  const lienGallica = urlGallica
+    ? `<a class="jr-gallica" href="${urlGallica}" target="_blank" rel="noopener">Voir l'année ${e.year} sur Gallica (BnF) ↗</a>
+       <p class="jr-gallicanote">Archives publiques de la BnF, pour se faire une idée du journal. L'édition numérisée peut différer de l'exemplaire proposé ici, et certaines années ne sont pas couvertes.</p>`
     : "";
 
   if (!isAdmin) {
