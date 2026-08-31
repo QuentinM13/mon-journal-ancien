@@ -240,13 +240,16 @@
   .jr-empty { text-align: center; padding: 2rem 1rem; color: #8a8070; font-size: 14px; }
   .jr-addbar { margin-top: 1.25rem; }
   .jr-addbtn { width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
-  .jr-form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-  .jr-form input, .jr-form select { padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 13px; }
-  .jr-form .jr-tagfield { grid-column: 1 / -1; }
-  .jr-form .jr-submitrow { grid-column: 1 / -1; display: flex; gap: 8px; }
-  .jr-form .jr-submitrow button { flex: 1; padding: 9px; border-radius: 6px; border: 1px solid #2b2620; cursor: pointer; font-size: 13px; }
-  .jr-form .jr-submit { background: #2b2620; color: #fff; }
-  .jr-form .jr-cancel { background: #fff; color: #2b2620; }
+  .jr-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px;
+             background: #faf8f3; border: 1px solid #e4ddcd; border-radius: 10px; padding: 14px; }
+  .jr-champ { display: flex; flex-direction: column; min-width: 0; }
+  .jr-champ-large { grid-column: 1 / -1; }
+  .jr-champ label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #8a8070; margin-bottom: 4px; font-weight: 600; }
+  .jr-champ label span { text-transform: none; letter-spacing: 0; font-weight: 400; color: #b0a894; }
+  .jr-form input, .jr-form select { width: 100%; box-sizing: border-box; min-width: 0; padding: 9px 10px;
+             border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; font-family: inherit; background-color: #fff; color: #2b2620; }
+  .jr-form .jr-submitrow { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 2px; }
+  .jr-err { grid-column: 1 / -1; }
   .jr-err { color: #a33; font-size: 12px; grid-column: 1 / -1; margin: -4px 0 0; }
 </style>
 <div class="jr-app" id="jrApp">
@@ -817,6 +820,8 @@ function render() {
     (isAdmin && activeCollectionId !== "__all") ? "block" : "none";
   document.getElementById("jrTabAdd").style.display = isAdmin ? "inline-block" : "none";
   document.querySelector(".jr-backup").style.display = isAdmin ? "block" : "none";
+  const bt = document.getElementById("jrTagToolBtn");
+  if (bt) bt.style.display = (isAdmin && planTags().length) ? "block" : "none";
 }
 
 function renderTopbar() {
@@ -1839,19 +1844,24 @@ function renderTagCloud() {
 
 function renderAddForm() {
   document.getElementById("jrForm").innerHTML = `
-    <input type="number" id="jrNewDay" placeholder="Jour" min="1" max="31" />
-    <select id="jrNewMonth">${MOIS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("")}</select>
-    <input type="number" id="jrNewYear" placeholder="Année" value="1918" />
-    <select id="jrNewStatus">
-      <option value="d">Disponible</option>
-      <option value="s">Spécial</option>
-      <option value="v">Vendu</option>
-    </select>
-    <input type="text" id="jrNewTitle" class="jr-tagfield" placeholder="Titre de la une (optionnel)" />
+    <div class="jr-champ"><label for="jrNewDay">Jour</label>
+      <input type="number" id="jrNewDay" inputmode="numeric" min="1" max="31" placeholder="12" /></div>
+    <div class="jr-champ"><label for="jrNewMonth">Mois</label>
+      <select id="jrNewMonth">${MOIS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("")}</select></div>
+    <div class="jr-champ"><label for="jrNewYear">Année</label>
+      <input type="number" id="jrNewYear" inputmode="numeric" value="1918" /></div>
+    <div class="jr-champ jr-champ-large"><label for="jrNewStatus">Statut</label>
+      <select id="jrNewStatus">
+        <option value="d">Disponible</option>
+        <option value="s">Numéro spécial</option>
+        <option value="v">Vendu</option>
+      </select></div>
+    <div class="jr-champ jr-champ-large"><label for="jrNewTitle">Titre de la une <span>(facultatif)</span></label>
+      <input type="text" id="jrNewTitle" placeholder="Ex. Le Général Mangin" /></div>
     <p class="jr-err" id="jrFormErr" style="display:none;"></p>
     <div class="jr-submitrow">
-      <button class="jr-submit" id="jrSubmitBtn">Ajouter</button>
-      <button class="jr-cancel" id="jrCancelBtn">Annuler</button>
+      <button class="jr-btn" id="jrSubmitBtn">Ajouter</button>
+      <button class="jr-btn jr-btn-sec" id="jrCancelBtn">Annuler</button>
     </div>
   `;
   document.getElementById("jrSubmitBtn").addEventListener("click", async () => {
