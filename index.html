@@ -181,6 +181,11 @@
   .jr-stat-sub { font-size: 11px; color: #8a8070; line-height: 1.5; margin: 0 0 8px; }
   .jr-bar-vert { background: #3a6b2a !important; }
   .jr-bar-v em { color: #b0a894; font-style: normal; font-size: 10px; }
+  .jr-coledit-btn { width: 100%; padding: 8px; margin-bottom: 12px; border-radius: 8px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 12px; cursor: pointer; }
+  .jr-coledit { background: #faf8f3; border: 1px solid #e4ddcd; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+  .jr-coledit input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 14px; font-family: inherit; }
+  .jr-coledit-note { font-size: 11px; color: #8a8070; margin: 5px 0 0; line-height: 1.4; }
+  .jr-coledit-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
   .jr-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
   .jr-row-date { width: 140px; flex-shrink: 0; font-size: 14px; font-weight: 600; }
@@ -214,6 +219,7 @@
   <div id="jrStorageWarn"></div>
   <div class="jr-topbar"><span class="jr-mode" id="jrModeLbl"></span></div>
   <div id="jrSetupPanel"></div>
+  <div id="jrColEdit"></div>
   <div class="jr-masthead">
     <h1>Mon Journal Ancien</h1>
   </div>
@@ -462,6 +468,7 @@ let tagsOpen = false;
 let pendingDeleteId = null;
 let statusEditId = null;
 let viewMode = "liste";
+let colEditOuvert = false;
 let searchQuery = "";
 let detailId = null;
 
@@ -856,7 +863,7 @@ function renderTabs() {
   document.querySelectorAll(".jr-tab").forEach(tab => {
     tab.addEventListener("click", () => {
       activeCollectionId = tab.dataset.col;
-      detailId = null; statusEditId = null; pendingDeleteId = null;
+      detailId = null; statusEditId = null; pendingDeleteId = null; colEditOuvert = false;
       selectedTags.clear();
       render();
     });
@@ -865,6 +872,56 @@ function renderTabs() {
   document.getElementById("jrTabAdd").addEventListener("click", () => {
     document.getElementById("jrNewColForm").style.display = "flex";
     document.getElementById("jrNewColInput").focus();
+  });
+  renderColEdit();
+}
+
+function renderColEdit() {
+  const z = document.getElementById("jrColEdit");
+  if (!z) return;
+  const col = collections.find(c => c.id === activeCollectionId);
+  if (!isAdmin || !col) { z.innerHTML = ""; return; }
+
+  if (!colEditOuvert) {
+    z.innerHTML = `<button class="jr-coledit-btn" id="jrColEditOpen">⚙ Paramètres de « ${escapeHtml(col.name)} »</button>`;
+    document.getElementById("jrColEditOpen").addEventListener("click", () => { colEditOuvert = true; renderColEdit(); });
+    return;
+  }
+
+  const nb = entries.filter(e => e.collectionId === col.id).length;
+  z.innerHTML = `<div class="jr-coledit">
+    <label class="jr-lbl">Nom de la collection</label>
+    <input type="text" id="jrColNom" value="${escapeHtml(col.name)}">
+    <label class="jr-lbl">Prix de base (€)</label>
+    <input type="number" id="jrColPrix" step="0.5" min="0" value="${col.prix == null ? "" : col.prix}" placeholder="ex. 6">
+    <p class="jr-coledit-note">Sert à afficher le prix aux visiteurs et à estimer le chiffre d'affaires. Les numéros spéciaux affichent « à partir de ce prix ».</p>
+    <label class="jr-lbl">Lien Gallica (facultatif)</label>
+    <input type="text" id="jrColGallica" value="${escapeHtml(col.gallica || "")}" placeholder="https://gallica.bnf.fr/ark:/...">
+    <p class="jr-coledit-note">${nb} journaux dans cette collection.</p>
+    <div class="jr-bk-actions">
+      <button id="jrColSave">Enregistrer</button>
+      <button id="jrColCancel" class="jr-panier-vider">Annuler</button>
+    </div>
+    <p class="jr-coledit-msg" id="jrColMsg"></p>
+  </div>`;
+
+  document.getElementById("jrColCancel").addEventListener("click", () => { colEditOuvert = false; renderColEdit(); });
+  document.getElementById("jrColSave").addEventListener("click", async () => {
+    const msg = document.getElementById("jrColMsg");
+    const nom = document.getElementById("jrColNom").value.trim();
+    const prixTxt = document.getElementById("jrColPrix").value.trim();
+    if (!nom) { msg.textContent = "Le nom ne peut pas être vide."; msg.style.color = "#a33"; return; }
+    if (prixTxt !== "" && (isNaN(Number(prixTxt)) || Number(prixTxt) < 0)) {
+      msg.textContent = "Prix invalide."; msg.style.color = "#a33"; return;
+    }
+    col.name = nom;
+    col.prix = prixTxt === "" ? null : Number(prixTxt);
+    col.gallica = document.getElementById("jrColGallica").value.trim() || null;
+    msg.style.color = "#8a8070";
+    msg.textContent = "Enregistrement…";
+    await saveCollections();
+    colEditOuvert = false;
+    render();
   });
 }
 
@@ -1405,13 +1462,14 @@ function renderStatsPanel() {
       </div>
 
       <h3>Argent</h3>
+      <p class="jr-stat-sub">Estimation basse : tout est valorisé au prix de base de la collection, y compris les numéros spéciaux qui se vendent en réalité plus cher.</p>
       <div class="jr-kpi jr-kpi-clair">
         <div><b>${ca} €</b><span>encaissé</span></div>
         <div><b>${prixMoyen.toFixed(2)} €</b><span>panier moyen</span></div>
         <div><b>${valeurStock} €</b><span>stock restant</span></div>
         <div><b>${vendusValo.length}/${vendus.length}</b><span>ventes chiffrées</span></div>
       </div>
-      ${vendusValo.length < vendus.length ? `<p class="jr-stat-note">Seules les collections avec un prix de base renseigné sont chiffrées. Renseigne les prix des autres collections pour un total complet.</p>` : ""}
+      ${vendusValo.length < vendus.length ? `<p class="jr-stat-note">Seules les collections dont le prix de base est renseigné sont chiffrées. Utilise le bouton ⚙ sur chaque onglet de collection pour le saisir.</p>` : ""}
 
       <h3>Ventes par mois</h3>
       ${dates.length ? `<div class="jr-mois">${moisCles.map(m => {
