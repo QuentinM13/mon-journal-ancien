@@ -148,6 +148,32 @@
   .jr-cmd-ligne em { color: #8a8070; font-size: 11px; font-style: normal; }
   .jr-cmd-msg { font-size: 12px; color: #8a8070; margin: 8px 0 0; }
   .jr-cmd-warn { color: #92650c; }
+  .jr-stats-panel h3 { font-family: Georgia, serif; font-size: 16px; margin: 1.5rem 0 .6rem; border-bottom: 1px solid #ece6d8; padding-bottom: 4px; }
+  .jr-stats-panel h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #8a8070; margin: 1rem 0 .4rem; font-weight: 600; }
+  .jr-kpi { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .jr-kpi div { background: #2b2620; color: #fff; border-radius: 8px; padding: 12px 6px; text-align: center; }
+  .jr-kpi b { display: block; font-size: 21px; }
+  .jr-kpi span { font-size: 10px; color: #c9c0aa; }
+  .jr-mois { display: flex; align-items: flex-end; gap: 3px; height: 96px; margin-top: 6px; }
+  .jr-mois-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .jr-mois-bar { width: 100%; background: #3a6b2a; border-radius: 2px 2px 0 0; }
+  .jr-mois-v { font-size: 9px; color: #5a5445; height: 11px; }
+  .jr-mois-l { font-size: 8px; color: #b0a894; margin-top: 3px; white-space: nowrap; }
+  .jr-bar-l { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
+  .jr-bar-n { width: 33%; color: #5a5445; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jr-bar-t { flex: 1; background: #f2eee4; border-radius: 3px; height: 13px; overflow: hidden; }
+  .jr-bar-f { display: block; height: 100%; background: #a8886a; }
+  .jr-bar-v { width: 34px; text-align: right; color: #8a8070; font-size: 11px; }
+  .jr-stat-vide { font-size: 12px; color: #b0a894; font-style: italic; margin: 6px 0; }
+  .jr-stat-note { font-size: 11px; color: #92650c; background: #fdf5e4; border-radius: 6px; padding: 6px 8px; margin: 8px 0 0; line-height: 1.4; }
+  .jr-resa { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid #f2eee4; }
+  .jr-resa em { color: #8a8070; font-size: 10px; font-style: normal; }
+  .jr-resa-exp { color: #a33; }
+  .jr-photo { width: 100%; border-radius: 8px; border: 1px solid #e4ddcd; margin: 8px 0; display: block; }
+  .jr-photo-actions { display: flex; gap: 8px; }
+  .jr-photo-btn { flex: 1; text-align: center; padding: 9px; border-radius: 6px; border: 1px dashed #c9c0aa; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
+  .jr-photo-del { padding: 9px 14px; border-radius: 6px; border: 1px solid #d8d0bd; background: #fff; color: #8a8070; font-size: 13px; cursor: pointer; }
+  .jr-photo-msg { font-size: 11px; color: #8a8070; margin: 6px 0 0; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
   .jr-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #ece6d8; }
   .jr-row-date { width: 140px; flex-shrink: 0; font-size: 14px; font-weight: 600; }
@@ -207,6 +233,7 @@
     <div class="jr-viewtoggle">
       <button class="jr-vbtn" data-view="liste">Liste</button>
       <button class="jr-vbtn" data-view="calendrier">Calendrier</button>
+      <button class="jr-vbtn jr-vbtn-admin" data-view="stats">Stats</button>
     </div>
     <button class="jr-sharebtn" id="jrShare">Copier le lien</button>
   </div>
@@ -550,7 +577,9 @@ function toRow(e) {
     annee: e.year, mois: e.month, jour: e.day,
     statut: e.status, titre: e.title || "", tags: e.tags || [],
     note: e.note || "", suppose: !!e.guessed,
-    reserve_jusqua: e.reservedUntil || null
+    reserve_jusqua: e.reservedUntil || null,
+    vendu_le: e.venduLe ? new Date(e.venduLe).toISOString() : null,
+    photo: e.photo || null
   };
 }
 function fromRow(r) {
@@ -559,7 +588,9 @@ function fromRow(r) {
     year: r.annee, month: r.mois, day: r.jour,
     status: r.statut, title: r.titre || "", tags: r.tags || [],
     note: r.note || "", guessed: !!r.suppose,
-    reservedUntil: r.reserve_jusqua ? Number(r.reserve_jusqua) : null
+    reservedUntil: r.reserve_jusqua ? Number(r.reserve_jusqua) : null,
+    venduLe: r.vendu_le ? new Date(r.vendu_le).getTime() : null,
+    photo: r.photo || null
   };
 }
 
@@ -872,8 +903,7 @@ function renderAlerts() {
       if (btn.dataset.action === "extend") {
         entry.reservedUntil = Date.now() + RESERVE_DAYS * 86400000;
       } else {
-        entry.status = "d";
-        entry.reservedUntil = null;
+        setStatut(entry, "d");
       }
       await persistEntry(entry);
       render();
@@ -964,8 +994,7 @@ function renderList() {
     btn.addEventListener("click", async () => {
       const entry = entries.find(x => x.id === btn.dataset.eid);
       if (!entry) return;
-      entry.status = btn.dataset.set;
-      entry.reservedUntil = btn.dataset.set === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+      setStatut(entry, btn.dataset.set);
       statusEditId = null;
       await persistEntry(entry);
       render();
@@ -1025,7 +1054,15 @@ function renderView() {
 
   const liste = document.getElementById("jrList");
   const cal = document.getElementById("jrCalendar");
-  if (viewMode === "calendrier") {
+  document.querySelectorAll(".jr-vbtn-admin").forEach(b => {
+    b.style.display = isAdmin ? "inline-block" : "none";
+  });
+  if (!isAdmin && viewMode === "stats") viewMode = "liste";
+
+  if (viewMode === "stats") {
+    liste.innerHTML = "";
+    renderStatsPanel();
+  } else if (viewMode === "calendrier") {
     liste.innerHTML = "";
     renderCalendrier();
   } else {
@@ -1208,6 +1245,174 @@ function renderPanier() {
   });
 }
 
+// ---------- Photos ----------
+function photoUrl(nom) {
+  return SUPABASE_URL + "/storage/v1/object/public/photos/" + nom;
+}
+
+async function compresserImage(file, maxDim, qualite) {
+  maxDim = maxDim || 1400; qualite = qualite || 0.72;
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = () => rej(new Error("Image illisible"));
+      i.src = url;
+    });
+    let w = img.naturalWidth, h = img.naturalHeight;
+    if (Math.max(w,h) > maxDim) {
+      const r = maxDim / Math.max(w,h);
+      w = Math.round(w*r); h = Math.round(h*r);
+    }
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img, 0, 0, w, h);
+    return await new Promise(res => c.toBlob(res, "image/jpeg", qualite));
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function envoyerPhoto(e, file) {
+  const blob = await compresserImage(file);
+  const nom = e.id + "-" + Date.now() + ".jpg";
+  const res = await fetch(SUPABASE_URL + "/storage/v1/object/photos/" + nom, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + bearer(),
+      "Content-Type": "image/jpeg",
+      "x-upsert": "true"
+    },
+    body: blob
+  });
+  if (!res.ok) throw new Error((await res.text()).slice(0,150));
+  const ancienne = e.photo;
+  e.photo = nom;
+  await persistEntry(e);
+  if (ancienne) { try { await supprimerFichier(ancienne); } catch (err) {} }
+  return Math.round(blob.size/1024);
+}
+
+async function supprimerFichier(nom) {
+  await fetch(SUPABASE_URL + "/storage/v1/object/photos/" + nom, {
+    method: "DELETE",
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + bearer() }
+  });
+}
+
+function setStatut(e, statut) {
+  e.status = statut;
+  e.reservedUntil = statut === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+  if (statut === "v") { if (!e.venduLe) e.venduLe = Date.now(); }
+  else { e.venduLe = null; }
+}
+
+function renderStatsPanel() {
+  const zone = document.getElementById("jrCalendar");
+  document.getElementById("jrList").innerHTML = "";
+  document.getElementById("jrCount").textContent = "";
+
+  const mine = entries.filter(inCollection);
+  const vendus = mine.filter(e => e.status === "v");
+  const dates = vendus.filter(e => e.venduLe);
+  const sansDate = vendus.length - dates.length;
+
+  // ventes par mois (12 derniers)
+  const parMois = {};
+  dates.forEach(e => {
+    const d = new Date(e.venduLe);
+    const k = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+    parMois[k] = (parMois[k] || 0) + 1;
+  });
+  const moisCles = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    moisCles.push({
+      k: d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0"),
+      lbl: MOIS[d.getMonth()].slice(0,4) + " " + String(d.getFullYear()).slice(2)
+    });
+  }
+  const maxMois = Math.max(1, ...moisCles.map(m => parMois[m.k] || 0));
+
+  const barres = (obj, limite) => {
+    const arr = Object.entries(obj).sort((a,b) => b[1]-a[1]).slice(0, limite || 8);
+    if (!arr.length) return `<p class="jr-stat-vide">Aucune donnée.</p>`;
+    const max = arr[0][1];
+    return arr.map(([k,v]) => `<div class="jr-bar-l">
+      <span class="jr-bar-n">${escapeHtml(k)}</span>
+      <span class="jr-bar-t"><span class="jr-bar-f" style="width:${Math.round(v/max*100)}%"></span></span>
+      <span class="jr-bar-v">${v}</span>
+    </div>`).join("");
+  };
+
+  const parColl = {}; vendus.forEach(e => { const n = collName(e.collectionId); parColl[n] = (parColl[n]||0)+1; });
+  const parTag = {};  vendus.forEach(e => (e.tags||[]).forEach(t => { parTag[t] = (parTag[t]||0)+1; }));
+  const parAnnee = {}; vendus.forEach(e => { parAnnee[e.year] = (parAnnee[e.year]||0)+1; });
+
+  // taux d'écoulement par collection
+  const ecoul = {};
+  collections.forEach(c => {
+    const tot = entries.filter(e => e.collectionId === c.id).length;
+    const v = entries.filter(e => e.collectionId === c.id && e.status === "v").length;
+    if (tot) ecoul[c.name] = Math.round(v/tot*100);
+  });
+
+  const bientot = entries.filter(e => e.status === "r" && e.reservedUntil)
+    .sort((a,b) => a.reservedUntil - b.reservedUntil);
+
+  const dispo = mine.filter(e => e.status === "d" || e.status === "s").length;
+
+  zone.innerHTML = `
+    <div class="jr-stats-panel">
+      <div class="jr-kpi">
+        <div><b>${mine.length}</b><span>en base</span></div>
+        <div><b>${dispo}</b><span>à vendre</span></div>
+        <div><b>${vendus.length}</b><span>vendus</span></div>
+        <div><b>${bientot.length}</b><span>réservés</span></div>
+      </div>
+
+      <h3>Ventes par mois</h3>
+      ${dates.length ? `<div class="jr-mois">${moisCles.map(m => {
+        const v = parMois[m.k] || 0;
+        return `<div class="jr-mois-col" title="${v} vente${v>1?"s":""}">
+          <span class="jr-mois-bar" style="height:${Math.round(v/maxMois*54)+2}px"></span>
+          <span class="jr-mois-v">${v||""}</span>
+          <span class="jr-mois-l">${m.lbl}</span>
+        </div>`;
+      }).join("")}</div>` : `<p class="jr-stat-vide">Les ventes seront datées à partir de maintenant.</p>`}
+      ${sansDate ? `<p class="jr-stat-note">${sansDate} ventes antérieures ne sont pas datées : elles comptent dans les totaux mais pas dans ce graphique.</p>` : ""}
+
+      <h3>Ce qui se vend le mieux</h3>
+      <h4>Par thème</h4>
+      ${barres(parTag, 8)}
+      <h4>Par année de parution</h4>
+      ${barres(parAnnee, 6)}
+      <h4>Par collection</h4>
+      ${barres(parColl, 6)}
+
+      <h3>Taux d'écoulement</h3>
+      ${Object.entries(ecoul).map(([n,pc]) => `<div class="jr-bar-l">
+        <span class="jr-bar-n">${escapeHtml(n)}</span>
+        <span class="jr-bar-t"><span class="jr-bar-f" style="width:${pc}%"></span></span>
+        <span class="jr-bar-v">${pc}%</span>
+      </div>`).join("") || `<p class="jr-stat-vide">Aucune donnée.</p>`}
+
+      <h3>Réservations en cours</h3>
+      ${bientot.length ? bientot.map(e => {
+        const j = daysLeft(e.reservedUntil);
+        return `<div class="jr-resa ${j<=0?"jr-resa-exp":""}">
+          <span>${e.day} ${MOIS[e.month-1]} ${e.year} <em>${escapeHtml(collName(e.collectionId))}</em></span>
+          <span>${j > 0 ? j + " j" : "expirée"}</span>
+        </div>`;
+      }).join("") : `<p class="jr-stat-vide">Aucune réservation en cours.</p>`}
+    </div>`;
+}
+
+function renderStatsPanelEnd() {}
+
 function ouvrirFiche(id) {
   detailId = id;
   render();
@@ -1247,6 +1452,7 @@ function renderDetail() {
         </div>
         <button id="jrDetailClose" aria-label="Fermer">✕</button>
       </div>
+      ${e.photo ? `<img class="jr-photo" src="${photoUrl(e.photo)}" alt="Une du ${e.day} ${MOIS[e.month-1]} ${e.year}" loading="lazy">` : ""}
       <div class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</div>
       ${prixTxt ? `<div class="jr-prix">${escapeHtml(prixTxt)}</div>` : ""}
       ${e.title ? `<p class="jr-detail-titre ${e.guessed ? "jr-guessed" : ""}">${e.guessed ? "≈ " : ""}${escapeHtml(e.title)}</p>` : ""}
@@ -1291,6 +1497,16 @@ function renderDetail() {
       <input type="text" id="jrNewTag" placeholder="Ajouter un tag (ex. Cartes, Généraux, Villes…)" />
       <button id="jrAddTagBtn">Ajouter</button>
     </div>
+    <label class="jr-lbl">Photo de la une</label>
+    ${e.photo ? `<img class="jr-photo" src="${photoUrl(e.photo)}" alt="" loading="lazy">` : ""}
+    <div class="jr-photo-actions">
+      <label class="jr-photo-btn">${e.photo ? "Remplacer" : "Ajouter une photo"}
+        <input type="file" id="jrPhotoInput" accept="image/*" style="display:none">
+      </label>
+      ${e.photo ? `<button class="jr-photo-del" id="jrPhotoDel">Retirer</button>` : ""}
+    </div>
+    <p class="jr-photo-msg" id="jrPhotoMsg"></p>
+
     <label class="jr-lbl">Note personnelle</label>
     <textarea id="jrDetailNote" rows="2" placeholder="Prix, état, remarques…">${escapeHtml(e.note)}</textarea>
     <button class="jr-detail-save" id="jrDetailSave">Enregistrer</button>
@@ -1300,8 +1516,7 @@ function renderDetail() {
 
   zone.querySelectorAll("[data-dset]").forEach(btn => {
     btn.addEventListener("click", async () => {
-      e.status = btn.dataset.dset;
-      e.reservedUntil = btn.dataset.dset === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+      setStatut(e, btn.dataset.dset);
       await persistEntry(e);
       renderStats();
       renderDetail();
@@ -1331,6 +1546,31 @@ function renderDetail() {
   };
   document.getElementById("jrAddTagBtn").addEventListener("click", addTag);
   document.getElementById("jrNewTag").addEventListener("keydown", ev => { if (ev.key === "Enter") addTag(); });
+
+  const pin = document.getElementById("jrPhotoInput");
+  if (pin) pin.addEventListener("change", async () => {
+    const f = pin.files && pin.files[0];
+    if (!f) return;
+    const msg = document.getElementById("jrPhotoMsg");
+    msg.style.color = "#8a8070";
+    msg.textContent = "Compression et envoi…";
+    try {
+      const ko = await envoyerPhoto(e, f);
+      msg.textContent = "✓ Photo enregistrée (" + ko + " Ko)";
+      renderDetail();
+    } catch (err) {
+      msg.style.color = "#a33";
+      msg.textContent = "✕ " + err.message;
+    }
+  });
+  const pdel = document.getElementById("jrPhotoDel");
+  if (pdel) pdel.addEventListener("click", async () => {
+    const anc = e.photo;
+    e.photo = null;
+    await persistEntry(e);
+    if (anc) { try { await supprimerFichier(anc); } catch (err) {} }
+    renderDetail();
+  });
 
   document.getElementById("jrDetailSave").addEventListener("click", async () => {
     const newTitle = document.getElementById("jrDetailTitle").value;
@@ -1571,8 +1811,7 @@ function analyserCommande() {
     const msg = document.getElementById("jrCmdMsg");
     msg.textContent = "Enregistrement…";
     for (const e of trouves) {
-      e.status = statut;
-      e.reservedUntil = statut === "r" ? Date.now() + RESERVE_DAYS * 86400000 : null;
+      setStatut(e, statut);
       await persistEntry(e);
     }
     msg.textContent = `✓ ${trouves.length} journaux mis à jour.`;
