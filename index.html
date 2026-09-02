@@ -216,6 +216,13 @@
     .jr-row-act { order: 3; }
   }
   .jr-cal-fiche { grid-column: 1 / -1; }
+  .jr-dates-intro { font-size: 11px; color: #8a8070; line-height: 1.5; margin: 0 0 12px; }
+  .jr-dates-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .jr-dates-mois { background: #faf8f3; border: 1px solid #ece6d8; border-radius: 8px; padding: 8px; }
+  .jr-dates-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .jr-dj { font-size: 10px; text-align: center; padding: 3px 0; border-radius: 3px; border: none; font-family: inherit; line-height: 1.3; }
+  .jr-dj-off { color: #ddd6c6; }
+  .jr-dj-on { font-weight: 700; cursor: pointer; }
   .jr-cal-sel { box-shadow: inset 0 0 0 2px #2b2620; }
   .jr-rowtag-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
   .jr-cloudtag-master { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
@@ -284,8 +291,9 @@
   <div class="jr-cloud" id="jrTagCloud"></div>
   <div class="jr-viewbar">
     <div class="jr-viewtoggle">
-      <button class="jr-vbtn" data-view="liste">Liste</button>
       <button class="jr-vbtn" data-view="calendrier">Calendrier</button>
+      <button class="jr-vbtn" data-view="dates">Dates</button>
+      <button class="jr-vbtn" data-view="liste">Liste</button>
       <button class="jr-vbtn jr-vbtn-admin" data-view="stats">Stats</button>
     </div>
     <button class="jr-sharebtn" id="jrShare">Copier le lien</button>
@@ -514,7 +522,7 @@ let selectedTags = new Set();
 let tagsOpen = false;
 let pendingDeleteId = null;
 let statusEditId = null;
-let viewMode = "liste";
+let viewMode = "calendrier";
 let colEditOuvert = false;
 let tabsOpen = false;
 let searchQuery = "";
@@ -1081,10 +1089,7 @@ function renderList() {
     let cls = e.guessed && e.title ? "jr-row-tag jr-guessed" : "jr-row-tag";
     if (e.guessed && e.title) sub = "≈ " + sub;
     if (e.status === "r") {
-      const info = e.reservedUntil
-        ? (daysLeft(e.reservedUntil) > 0 ? `expire dans ${daysLeft(e.reservedUntil)}j` : "réservation expirée")
-        : "réservation sans limite";
-      sub = info + (e.title ? " · " + e.title : "");
+      sub = e.title || "";
       cls = "jr-row-tag";
     }
     const cc = collCouleur(e.collectionId);
@@ -1103,8 +1108,7 @@ function renderList() {
             <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-set="d" data-eid="${e.id}">Disponible</button>
             <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-set="s" data-eid="${e.id}">Spécial</button>
             <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-set="v" data-eid="${e.id}">Vendu</button>
-            <button class="jr-badge jr-badge-r ${e.status==='r'&&e.reservedUntil?'cur':''}" data-set="r" data-eid="${e.id}">Réservé ${RESERVE_DAYS}j</button>
-            <button class="jr-badge jr-badge-r ${e.status==='r'&&!e.reservedUntil?'cur':''}" data-set="r" data-perm="1" data-eid="${e.id}">Réservé sans limite</button>
+            <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-set="r" data-perm="1" data-eid="${e.id}">Réservé</button>
           </div>
           <button class="jr-pickcancel" data-cancelstatus="1">✕</button>
         </div>
@@ -1116,9 +1120,9 @@ function renderList() {
         ${isAdmin
           ? `<button class="jr-badge jr-badge-${e.status} jr-badge-btn" data-status="${e.id}">${STATUS_LABEL[e.status]}</button>`
           : `<span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>`}
-      </div>
-      ${(colTag || sub || tagsHtml) ? `<div class="jr-row-open jr-row-bas" data-open="${e.id}">
         ${colTag}
+      </div>
+      ${(sub || tagsHtml) ? `<div class="jr-row-open jr-row-bas" data-open="${e.id}">
         ${sub ? `<span class="${cls}">${escapeHtml(sub)}</span>` : ""}
         ${tagsHtml}
       </div>` : `<span class="jr-row-bas"></span>`}
@@ -1216,6 +1220,9 @@ function renderView() {
   if (viewMode === "stats") {
     liste.innerHTML = "";
     renderStatsPanel();
+  } else if (viewMode === "dates") {
+    liste.innerHTML = "";
+    renderDatesPanel();
   } else if (viewMode === "calendrier") {
     liste.innerHTML = "";
     renderCalendrier();
@@ -1303,7 +1310,7 @@ function copierLien() {
   if (searchQuery.trim()) p.set("q", searchQuery.trim());
   if (selectedTags.size) p.set("tags", [...selectedTags].join(","));
   if (activeCollectionId !== "__all") p.set("col", activeCollectionId);
-  if (viewMode !== "liste") p.set("vue", viewMode);
+  if (viewMode !== "calendrier") p.set("vue", viewMode);
   const url = location.origin + location.pathname + (p.toString() ? "?" + p.toString() : "");
   const btn = document.getElementById("jrShare");
   navigator.clipboard.writeText(url).then(
@@ -1321,7 +1328,7 @@ function lireLien() {
   }
   if (p.get("tags")) p.get("tags").split(",").filter(Boolean).forEach(t => selectedTags.add(t));
   if (p.get("col")) activeCollectionId = p.get("col");
-  if (p.get("vue") === "calendrier") viewMode = "calendrier";
+  if (p.get("vue")) viewMode = p.get("vue");
 }
 
 // ---------- Liste de courses (côté visiteur, stockée dans son navigateur) ----------
@@ -1472,6 +1479,60 @@ function setStatut(e, statut, permanent) {
   e.status = statut;
   if (statut === "v") { if (!e.venduLe) e.venduLe = Date.now(); }
   else { e.venduLe = null; }
+}
+
+function renderDatesPanel() {
+  const zone = document.getElementById("jrCalendar");
+  document.getElementById("jrList").innerHTML = "";
+  const filtered = currentFiltered();
+
+  // combien de journaux pour chaque jour/mois, toutes années confondues
+  const compte = {};
+  filtered.forEach(e => {
+    const k = e.month + "-" + e.day;
+    compte[k] = (compte[k] || 0) + 1;
+  });
+  const total = Object.keys(compte).length;
+  document.getElementById("jrCount").textContent =
+    `${total} date${total !== 1 ? "s" : ""} du calendrier couverte${total !== 1 ? "s" : ""}`;
+
+  const max = Math.max(1, ...Object.values(compte));
+  const JOURS_MOIS = [31,29,31,30,31,30,31,31,30,31,30,31];
+
+  zone.innerHTML = `
+    <p class="jr-dates-intro">Toutes années confondues. Cliquez sur un jour pour voir les journaux parus à cette date, quelle que soit l'année.</p>
+    <div class="jr-dates-wrap">
+      ${MOIS.map((nom, mi) => {
+        const m = mi + 1;
+        const cases = [];
+        for (let j = 1; j <= JOURS_MOIS[mi]; j++) {
+          const n = compte[m + "-" + j] || 0;
+          if (n === 0) {
+            cases.push(`<span class="jr-dj jr-dj-off">${j}</span>`);
+          } else {
+            const force = 0.45 + 0.55 * (n / max);
+            cases.push(`<button class="jr-dj jr-dj-on" data-jour="${j}" data-mois="${m}"
+              style="background:rgba(58,107,42,${force.toFixed(2)});color:${force > 0.66 ? "#fff" : "#122c0d"}"
+              title="${n} journal${n>1?"x":""} au ${j} ${nom}">${j}</button>`);
+          }
+        }
+        return `<div class="jr-dates-mois">
+          <div class="jr-cal-nom">${nom}</div>
+          <div class="jr-dates-grille">${cases.join("")}</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+
+  zone.querySelectorAll("[data-jour]").forEach(b => {
+    b.addEventListener("click", () => {
+      searchQuery = b.dataset.jour + "/" + b.dataset.mois;
+      const inp = document.getElementById("jrSearch");
+      if (inp) inp.value = searchQuery;
+      viewMode = "liste";
+      detailId = null;
+      render();
+    });
+  });
 }
 
 function renderStatsPanel() {
@@ -1702,8 +1763,7 @@ function ficheHtml(e) {
       <button class="jr-badge jr-badge-d ${e.status==='d'?'cur':''}" data-dset="d">Disponible</button>
       <button class="jr-badge jr-badge-s ${e.status==='s'?'cur':''}" data-dset="s">Spécial</button>
       <button class="jr-badge jr-badge-v ${e.status==='v'?'cur':''}" data-dset="v">Vendu</button>
-      <button class="jr-badge jr-badge-r ${e.status==='r'&&e.reservedUntil?'cur':''}" data-dset="r">Réservé ${RESERVE_DAYS}j</button>
-      <button class="jr-badge jr-badge-r ${e.status==='r'&&!e.reservedUntil?'cur':''}" data-dset="r" data-dperm="1">Réservé sans limite</button>
+      <button class="jr-badge jr-badge-r ${e.status==='r'?'cur':''}" data-dset="r" data-dperm="1">Réservé</button>
     </div>
     <label class="jr-lbl">Titre / description de la une</label>
     ${e.guessed && e.title ? '<p class="jr-guesswarn">≈ Titre déduit de la date, pas lu sur le journal — à vérifier avant de l\'annoncer à un client.</p>' : ''}
