@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mon Journal Ancien — collection de journaux d'époque</title>
-<meta name="description" content="Consultez les journaux anciens disponibles : Le Petit Parisien, Le Petit Journal illustré, Le Monde, L'Humanité, Le Dauphiné Libéré. Recherche par date, par année et par thème.">
+<title>Mon Journal Ancien — journaux et cartes d'époque</title>
+<meta name="description" content="Journaux anciens et cartes géographiques d'époque : recherche par date, par année, par thème et par pays.">
 <meta name="theme-color" content="#2b2620">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mon Journal Ancien">
-<meta property="og:description" content="Recherchez un journal par date ou par thème dans la collection.">
+<meta property="og:description" content="Journaux et cartes anciennes : recherchez par date, par thème ou par pays.">
 <meta property="og:locale" content="fr_FR">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
 <style>
@@ -201,6 +201,27 @@
     background-repeat: no-repeat; background-position: right 10px center; padding-right: 26px;
   }
   .jr-form input { background-image: none; padding-right: 8px; }
+  .jr-univers { display: flex; gap: 6px; margin: 4px 0 12px; }
+  .jr-ubtn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #e4ddcd; background: #faf8f3; color: #8a8070; font-size: 14px; font-family: inherit; cursor: pointer; }
+  .jr-ubtn.on { background: #2b2620; border-color: #2b2620; color: #fff; font-weight: 600; }
+  .jr-cfiltres { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .jr-chipf { font-size: 12px; padding: 7px 12px; border-radius: 999px; border: 1px solid #e4ddcd; background: #faf8f3; color: #5a5445; cursor: pointer; font-family: inherit; }
+  .jr-chipf.on { background: #2b2620; border-color: #2b2620; color: #fff; }
+  .jr-selmini { font-size: 12px; padding: 7px 10px; border-radius: 999px; border: 1px solid #e4ddcd; background: #fff; color: #5a5445; font-family: inherit; }
+  .jr-cnum { font-size: 10px; color: #b0a894; min-width: 26px; }
+  .jr-cetat { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .jr-cetat-gros { font-size: 14px; padding: 5px 11px; }
+  .jr-cetat-txt { font-size: 12px; color: #8a8070; font-style: italic; }
+  .jr-ccote { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #ece6d8; color: #7a7362; }
+  .jr-cnom { font-size: 14px; font-weight: 600; }
+  .jr-cinfo { font-size: 11px; color: #8a8070; }
+  .jr-cpays { font-size: 10px; padding: 1px 7px; border-radius: 999px; background: #2f4858; color: #fff; }
+  .jr-capreciser { font-size: 10px; color: #c9a35c; font-style: italic; }
+  .jr-cfiche-etat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0; }
+  .jr-cargent { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 14px 0 4px; }
+  .jr-cargent div { background: #f7f4ee; border: 1px solid #e4ddcd; border-radius: 8px; padding: 9px 6px; text-align: center; }
+  .jr-cargent b { display: block; font-size: 15px; }
+  .jr-cargent span { font-size: 10px; color: #8a8070; }
   .jr-count { font-size: 12px; color: #8a8070; margin-bottom: 8px; }
   .jr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 9px 4px; border-bottom: 1px solid #ece6d8; }
   .jr-row:last-child { border-bottom: none; }
@@ -246,6 +267,7 @@
   .jr-badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
   .jr-badge-d { background: #e3f0dc; color: #3a6b2a; }
   .jr-badge-s { background: #e2e8f7; color: #33488f; }
+  .jr-copen { cursor: pointer; }
   .jr-badge-v { background: #ece6d8; color: #7a7362; }
   .jr-badge-r { background: #fbeecb; color: #92650c; }
   .jr-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
@@ -275,8 +297,12 @@
   <div id="jrStorageWarn"></div>
   <div class="jr-topbar"><span class="jr-mode" id="jrModeLbl"></span></div>
   <div id="jrSetupPanel"></div>
+  <div class="jr-univers">
+    <button class="jr-ubtn" data-univ="journaux">📰 Journaux</button>
+    <button class="jr-ubtn" data-univ="cartes">🗺 Cartes</button>
+  </div>
   <div class="jr-masthead">
-    <h1>Mon Journal Ancien</h1>
+    <h1 id="jrTitre">Mon Journal Ancien</h1>
   </div>
   <div id="jrDisclaimer"></div>
   <div class="jr-tabs" id="jrTabs"></div>
@@ -327,6 +353,7 @@
     <button class="jr-loginbtn" id="jrLoginBtn">Connexion</button>
     <div id="jrLoginPanel" style="display:none;"></div>
   </div>
+  <div id="jrCartes"></div>
   <div class="jr-panier" id="jrPanierBar" style="display:none;"></div>
 </div>
 <script>
@@ -502,6 +529,328 @@ const SEED_HUMA = [
 [1967,10,31,"",""]
 ];
 
+const SEED_CARTES=[
+[1,"Souabe, Suisse, Piemont","Atlas de Thiers (1859)",0,"Situation",1859,"Angle abimé",8,0.61,25,"B",1,"Allemagne|Italie|Suisse"],
+[2,"Souabe","Atlas de Thiers (1859)",0,"Situation",1859,"Angle abimé",8,0.61,25,"B-",1,"Allemagne"],
+[3,"Piemont","Atlas de Thiers (1859)",0,"Situation",1859,"Angle abimé",8,0.61,25,"B",0,"Italie"],
+[4,"Géne","Atlas de Thiers (1859)",0,"Situation",1859,"Angle abimé",8,0.61,30,"A",0,"Italie"],
+[5,"Engen Stokach","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,20,"C",0,"Allemagne"],
+[6,"Moensskirch","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"Angle abimé",8,0.61,10,"C",0,"Allemagne"],
+[7,"Ulm","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,35,"A",0,"Allemagne"],
+[8,"Valais et Aost","Atlas de Thiers (1859)",0,"Région",1859,"Angle abimé",8,0.61,15,"C",0,"Suisse"],
+[9,"Alexandri et marengo","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,15,"A",0,"Italie"],
+[10,"Danube Hochstett","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,10,"B",0,"Allemagne"],
+[11,"Héliopolis, Kaire","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,35,"B",0,"Égypte"],
+[12,"Basse egypte","Atlas de Thiers (1859)",0,"Région",1859,"Angle abimé",8,0.61,15,"A",1,"Égypte"],
+[13,"Kaire","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,15,"B",1,"Égypte"],
+[14,"Danube , Baviere, bhoeme south germania","Atlas de Thiers (1859)",0,"Situation",1859,"Angle abimé",8,0.61,10,"B",0,"Allemagne"],
+[15,"Munich","Atlas de Thiers (1859)",0,"Situation",1859,"",10,0.61,10,"C",0,""],
+[16,"Hoenlinden","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"Angle abimé",8,0.61,20,"B+",0,""],
+[17,"Sund Denmark norvege","Atlas de Thiers (1859)",0,0,1859,"Angle abimé",8,0.61,20,"B+",1,"Danemark / Norvège"],
+[18,"","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,30,"A",0,""],
+[19,"Gibraltar algesiras","Atlas de Thiers (1859)",0,"Ville",1859,"Angle abimé",8,0.61,30,"A",0,""],
+[20,"2x Allemagne 1789","Atlas de Thiers (1859)",0,"Pays",1859,"Angles abimé",8,0.61,50,"S",0,"Allemagne"],
+[21,"2x Allemagne 1805","Atlas de Thiers (1859)",0,"Pays",1859,"Angles abimé",8,0.61,50,"S",0,"Allemagne"],
+[22,"Saint domingue haiti","Atlas de Thiers (1859)",0,"Pays",1859,"bord abimé",8,0.61,30,"A-",0,""],
+[23,"Manche Fr EN","Atlas de Thiers (1859)",0,"Pays",1859,"bord abimé",8,0.61,30,"A",1,"Royaume-Uni"],
+[24,"Boulogne port","Atlas de Thiers (1859)",0,"Ville",1859,"bord abimé",8,0.61,15,"C",0,""],
+[25,"Camp de boulogne","Atlas de Thiers (1859)",0,"Ville",1859,"bord++abimé",8,0.61,20,"A",0,""],
+[26,"Batailo naval de ferrol","Atlas de Thiers (1859)",0,0,1859,"bord abimé",8,0.61,10,"Bonus",0,""],
+[27,"Carte general de l'Europe","Atlas de Thiers (1859)",0,0,1859,"bord abimé",8,0.61,35,"S",0,"Italie|International"],
+[28,"Carte g. de l'allemagne","Atlas de Thiers (1859)",0,"Pays",1859,"bord abimé",8,0.61,15,"S",1,"Allemagne"],
+[29,"Baviere","Atlas de Thiers (1859)",0,"Région",1859,"bord abimé",8,0.61,10,"C",1,"Allemagne"],
+[30,"Bataille naval de trafalgar","Atlas de Thiers (1859)",0,0,1859,"bord + abimé",8,0.61,60,"S",0,"Royaume-Uni"],
+[31,"Alpes","Atlas de Thiers (1859)",0,0,1859,"bord abimé",8,0.61,25,"B-",0,"Suisse"],
+[32,"Autriche et Moravie","Atlas de Thiers (1859)",0,"Pays",1859,"bord abimé tache",6,0.61,10,"C-",0,"Autriche"],
+[33,"Austerlitz","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"bord abimé",8,0.61,35,"S",1,"Autriche"],
+[34,"Franconi et saxe","Atlas de Thiers (1859)",0,"Région",1859,"bord abimé",8,0.61,10,"B",0,"Allemagne"],
+[35,"Iena et awerstaedt","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"bord abimé",8,0.61,25,"B-",0,"Allemagne"],
+[36,"Nord de l'Allemagne","Atlas de Thiers (1859)",0,"Pays",1859,"bord abimé",8,0.61,40,"S",0,"Allemagne"],
+[37,"Pruse oriental et pologne","Atlas de Thiers (1859)",0,"Pays",1859,"bord abimé",8,0.61,20,"A",1,"Pologne"],
+[38,"2x prusse oriental","Atlas de Thiers (1859)",0,"Pays",1859,"Angle abimé",8,0.61,40,"S",1,"Allemagne"],
+[39,"4 ville polonaises","Atlas de Thiers (1859)",0,"Ville",1859,"bord abimé",8,0.61,15,"A",1,""],
+[40,"Eylau","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"bord abimé",8,0.61,15,"B",1,"Allemagne"],
+[41,"Dantzig","Atlas de Thiers (1859)",0,"Ville",1859,"bord abimé",8,0.61,25,"S",0,"Allemagne"],
+[42,"Friedland","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"bord abimé",8,0.61,10,"B-",0,"Allemagne"],
+[43,"x2 Espagne et Portugal","Atlas de Thiers (1859)",0,"Pays",1859,"Tache et bord",8,0.61,50,"S",0,"Espagne|Portugal"],
+[44,"environs deBaylen","Atlas de Thiers (1859)",0,"Environs",1859,"bord abimé",8,0.61,15,"C",0,""],
+[45,"Saragosse","Atlas de Thiers (1859)",0,"Ville",1859,"bord abimé",8,0.61,20,"A",0,"Espagne"],
+[46,"Plan danube izar ratisbonne","Atlas de Thiers (1859)",0,"Situation",1859,"bord abimé",8,0.61,10,"B",0,"Allemagne"],
+[47,"Eckmull","Atlas de Thiers (1859)",0,"Environs",1859,"bord abimé",8,0.61,10,"B-",0,""],
+[48,"Vienne","Atlas de Thiers (1859)",0,"Ville",1859,"bord abimé",8,0.61,20,"A+",1,"Autriche"],
+[49,"Lobau","Atlas de Thiers (1859)",0,"Environs",1859,"bord abimé",8,0.61,20,"C",0,""],
+[50,"Talavara","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"bord abimé",8,0.61,20,"A-",0,""],
+[51,"Flandre et escaut","Atlas de Thiers (1859)",0,"Région",1859,"bord abimé",8,0.61,25,"S",0,""],
+[52,"Places fortes espagne","Atlas de Thiers (1859)",0,0,1859,"bord abimé",8,0.61,25,"S",0,"Espagne"],
+[53,"Regions Portugal","Atlas de Thiers (1859)",0,"Région",1859,"bord abimé",8,0.61,10,"C",0,"Portugal"],
+[54,"x2 Pologne russie","Atlas de Thiers (1859)",0,"Pays",1859,0,0,0.61,40,"S",0,"Russie|Pologne"],
+[55,"wilna moscou","Atlas de Thiers (1859)",0,0,1859,0,0,0.61,20,"B-",0,"Russie"],
+[56,"Moscowa","Atlas de Thiers (1859)",0,"Champ de bataille",1859,0,0,0.61,20,"B",0,""],
+[57,"Berezina, moscow, smolensk","Atlas de Thiers (1859)",0,"Ville",1859,0,0,0.61,25,"S",1,"Russie"],
+[58,"x2 Drende bhoem prusse","Atlas de Thiers (1859)",0,"Ville",1859,0,0,0.61,25,"A",0,"Allemagne"],
+[59,"Bautzen","Atlas de Thiers (1859)",0,"Champ de bataille",1859,0,0,0.61,10,"B+",1,"Allemagne"],
+[60,"Leipzig","Atlas de Thiers (1859)",0,"Ville",1859,0,0,0.61,10,"B+",0,"Allemagne"],
+[61,"Est de la France","Atlas de Thiers (1859)",0,"Pays",1859,0,0,0.61,15,"A+",1,""],
+[62,"X2 Paris + Est de paris","Atlas de Thiers (1859)",0,"Ville",1859,0,0,0.61,35,"S",0,""],
+[63,"Environs de villes","Atlas de Thiers (1859)",0,"Ville",1859,"alveoles",8,0.61,20,"A",0,""],
+[64,"Environs de Laon","Atlas de Thiers (1859)",0,"Ville",1859,"alveoles",8,0.61,20,"B-",0,""],
+[65,"Bruxelle et namur","Atlas de Thiers (1859)",0,"Ville",1859,"alveoles ++",7,0.61,30,"A",0,"Belgique"],
+[66,"Waterloo","Atlas de Thiers (1859)",0,"Champ de bataille",1859,"alveoles ++",7,0.61,35,"S",0,"Royaume-Uni"],
+[67,"Carte de Norm. Avranche","État Major",0,0,1934,"Plié/coté abimé",9,6.73,15,"B--",0,"France"],
+[68,"Rocroi 14 ww1","État Major",0,0,1913,"plié",9,3.33,25,"A-",0,"France"],
+[69,"Colmar 86","État Major",0,0,1911,"plié",9,3.33,25,"A",0,"France"],
+[70,"Provins 66 ww1","État Major",0,0,1912,"plié +",9,3.33,15,"B+",0,"France"],
+[71,"Sarrebourg 53 ww1","État Major",0,0,1911,"Plié+ Taches bord",5,3.33,15,"B",1,"France"],
+[72,"Commercy 52 ww1","État Major",0,0,1912,"Plié+ Taches lignes trous",2,3.33,12,"C",1,"France"],
+[73,"Soisson 33 ww1","État Major",0,0,1912,"Plié+ Taches lignes trous",2,3.33,15,"C",0,"France"],
+[74,"Arcis 67 ww1","État Major",0,0,1911,"plié",9,3.33,20,"A-",0,"France"],
+[75,"Sarreguemines 37","État Major",0,0,1901,"plié, troues et bord gauche",6,3.33,25,"A",1,"France"],
+[76,"Metz 36 ww1","État Major",0,0,1912,"plié + et devhirure legere",8,3.33,35,"A-",1,"France"],
+[77,"Melun 65","État Major",0,0,1902,"plié + et devhirure legere",8,3.33,20,"B+",0,"France"],
+[78,"lure 100 ww1","État Major",0,0,1913,"plié et froissement milieu",9,3.33,15,"B-",1,"France"],
+[79,"Mirecourt 84 ww1","État Major",0,0,1913,"plié et pli legé",9,3.33,25,"A+",0,"France"],
+[80,"Lille 5","État Major",0,0,1889,"plié et taches legeres",8,3.33,40,"A+",1,"France"],
+[81,"Mèzieres 24 ww1","État Major",0,0,1913,"plié, tache pli légé troues",4,3.33,10,"B-",1,"France"],
+[82,"Cambrai 13 ww1","État Major",0,0,1914,"plié, taches et 4 plis en trop",7,3.33,20,"B",1,"France|Royaume-Uni"],
+[83,"St Omer 4 base uk","État Major",0,0,1898,"plié juste 3 trous angles",6,3.33,35,"A",0,"France"],
+[84,"Rethel 23 ww1","État Major",0,0,1913,"plié  petits plis un peu partout",9,3.33,20,"B+",0,"France"],
+[85,"Douais 8","État Major",0,0,1901,"plié plis en trop++, taches",5,3.33,15,"C",1,"France"],
+[86,"Chalons 50 ww1","État Major",0,0,1911,"plié et pli legé",9,3.33,40,"A+",1,"France"],
+[87,"Amiens 12","État Major",0,0,1902,"plié troué taché+",4,3.33,20,"B",1,"France"],
+[88,"Beauvais 32","État Major",0,0,1903,"plié, taches et trous legé",4,3.33,20,"B",0,"France"],
+[89,"Lunéville 70 ww1","État Major",0,0,1911,"plié nickel",9,3.33,30,"A",0,"France"],
+[90,"Montdidier 21","État Major",0,0,1902,"plié 1 pli en + taches legere",5,3.33,15,"B-",1,"France"],
+[91,"Bar-Le-Duc 51 ww1","État Major",0,0,1913,"plié parfaite",9,3.33,25,"A",1,"France"],
+[92,"Verdun 35 ww1","État Major",0,0,1913,"plié, tache plis , dechirure",4,3.33,25,"A-",1,"France|International"],
+[93,"Reims 34","État Major",0,0,1896,"plié taché dechiré ++ plié",2,3.33,15,"C",0,"France"],
+[94,"Reims 34","État Major",0,0,1913,"plié taché dechiré ++ plié",2,3.33,15,"C",0,"France"],
+[95,"Nancy 69 ww1","État Major",0,0,1912,"plié nickel",9,3.33,30,"A",0,"France"],
+[96,"Verdun 35","État Major",0,0,1895,"plié, plis en trop, pli et trous",6,3.33,25,"A-",1,"France|International"],
+[97,"Meaux 49 ww1","État Major",0,0,1912,"plié dechiré troué tache legere",4,3.33,15,"C",0,"France"],
+[98,"Wassy 68 ww1","État Major",0,0,1913,"plié une dechirure, bord legé",6,3.33,15,"B-",0,"France"],
+[99,"Ferrette 115 ww1","État Major",0,0,1913,"plié, taches plis troue",4,3.33,15,"B",0,"France"],
+[100,"Laon 22 ww1","État Major",0,0,1912,"plié, trousplis bord",9,3.33,15,"C",0,"France"],
+[101,"Epinal 85 ww1","État Major",0,0,1911,"plié, nickel mais 1 pti trou",6,3.33,20,"A",0,"France"],
+[102,"Schirmeck 615 FR","État Major allemand",0,0,1906,"plié, plis et bord legé",9,3.33,10,"B",1,""],
+[103,"Markirch/StMarieMine 629 FR","État Major allemand",0,0,1889,"plié, plis et bord legé",9,3.33,10,"B",0,""],
+[104,"Gebweiler 642 FR","État Major allemand",0,0,1889,"plié, plis et bord legé et trous",6,3.33,10,"B-",0,""],
+[105,"Mulhausen 656 FR","État Major allemand",0,0,1889,"plié, plis et bord legé et trous",6,3.33,10,"B-",0,""],
+[106,"Givet 15  Nord/Ouest","État Major",0,0,1913,"plié, plis bizard et plis,taches",7,3.33,10,"A",0,"France"],
+[107,"Dunkerque 2 Sud Est","État Major",0,0,1898,"Plié, bord legé",9,3.33,25,"A",1,"France"],
+[108,"Longwy 25 Sud Ouest","État Major",0,0,1912,"Plié, bord legé, taches",7,3.33,15,"A",0,"France"],
+[109,"Sierk Sud Ouest","État Major",0,0,1908,"plié, bords légé",9,3.33,10,"B",0,"France"],
+[110,"Maroc",0,0,0,0,"abimé",8,3.33,15,"A-",0,""],
+[111,"Le Front Anglo-Belge",0,0,0,1916,"invendable",10,3.33,0,"X",0,""],
+[112,"Reims et Soissons collé","État Major",0,0,1913,"invendable",10,3.33,0,"X",0,"France"],
+[113,"Vesoul 35",0,"1/200 000",0,0,"plié et plis / couleur",9,2.07,20,"A-",0,""],
+[114,"Zurich 36",0,"1/200 000",0,0,"plié et plis / couleur",9,2.07,25,"A",0,""],
+[115,"Kaiserslautern 556 All","État Major allemand",0,0,1904,"plié, froissure legere, taches",7,2.07,10,"B",1,""],
+[116,"kirchheimbolanden 543 All","État Major allemand",0,0,1913,"plié, froissure legere, taches",7,2.07,10,"B",1,""],
+[117,"Simmern 525 All","État Major allemand",0,0,1918,"plié, froissure legere, taches",7,2.07,10,"B",0,""],
+[118,"Mainz 526 All","État Major allemand",0,0,1918,"plié, froissure legere, taches",7,2.07,10,"B",0,""],
+[119,"Kusel 542 All","État Major allemand",0,0,1918,"plié, froissure legere, taches",7,2.07,10,"B",0,""],
+[120,"Strasbourg 28",0,"1/200 000",0,1952,"plié",9,2.29,20,"A",0,""],
+[121,"Bordeaux","État Major",0,0,1940,"plié, papier rigide",9,2.29,15,"A",1,"France"],
+[122,"Chartre","État Major",0,0,1940,"plié, papier rigide",9,2.29,20,"A",0,"France"],
+[123,"Méditerranée",0,0,0,1943,"Plié Plein de petites taches",7,2.29,30,"S-",1,""],
+[124,"Bar le duc entoilé",0,0,0,0,"Taché",8,2.29,50,"A-",0,""],
+[125,"Stalingrad",0,0,0,1950,"plié",9,2.29,10,"A-",0,""],
+[126,"Carte routiere Italie 988","Michelin",0,0,1983,"Plié, tres propre",9,2.45,20,"A",0,"France|Italie"],
+[127,"Carte routiere France 237","Michelin",0,0,1986,"Plié, tres propre",9,2.45,15,"B",0,"France"],
+[128,"Carte entoilé d'Avignon",0,0,0,0,"trace de stylo",10,9.88,40,"A--",0,""],
+[129,"Bourge Nord Ouest","État Major",0,0,1897,"Plis tache froissure",6,1.04,10,"B-",0,"France"],
+[130,"Le Chambon XX-27","Service Vicinal",0,0,1895,"plié, coin",9,1.04,19,"B-",1,"France"],
+[131,"Lyon SO XXI-26","Service Vicinal",0,0,1913,"plié, 1 coin",9,1.04,19,"A",0,"France"],
+[132,"Macon Est XXII-23","Service Vicinal",0,0,1909,"plis nul",8,1.04,19,"B-",0,"France"],
+[133,"Valbonnais XXIV-29","Service Vicinal",0,0,1901,"plis, 1 taches",7,1.04,19,"A",0,"France"],
+[134,"La Cote St Andrée XXII-27","Service Vicinal",0,0,1892,"plis nul",8,1.04,19,"B-",1,"France"],
+[135,"Arles XXI-34","Service Vicinal",0,0,1891,"Plis nul, sale",8,1.04,19,"A-",0,"France"],
+[136,"Vallorcine XXVI-24 (Suisse)","Service Vicinal",0,0,1894,"plis nul, taches",6,1.04,19,"B-",1,"France|Suisse"],
+[137,"Modane XXXV-34",0,"1/50 000",0,1927,"plis nul, trous fleche bleu",5,1.04,25,"A-",0,""],
+[138,"Névache XXXV-35",0,"1/50 000",0,1929,"plis, bord legé",9,1.04,25,"A",0,""],
+[139,"Lanslebourg XXXVI-34",0,"1/50 000",0,1929,"plis nul,",8,1.04,25,"A-",0,""],
+[140,"Avignon 66",0,"1/200 000",0,1930,"plis, taches legere nickel",8,1.04,25,"A+",0,""],
+[141,"Tigne 55 (Italie)",0,"1/200 000",0,1930,"plis, dechirure",6,1.04,20,"A-",0,"Italie"],
+[142,"Le Puy 59",0,"1/200 000",0,1930,"plis, nickel sauf 2 dechirures",6,1.04,20,"A",0,""],
+[143,"Gap 60",0,"1/200 000",0,1930,"plis, nickel",9,1.04,20,"A",0,""],
+[144,"Digne 67",0,"1/200 000",0,1930,"plis, nickel",9,1.04,20,"A",0,""],
+[145,"Nice 68",0,"1/200 000",0,1930,"plis, nickel, taches legere",8,1.04,25,"A+",0,""],
+[146,"Grd St Bernard 49 (Sw et It)",0,"1/200 000",0,1930,"plis nul legé, legere dechirure",6,1.04,25,"A+",0,""],
+[147,"Annecy 48",0,"1/200 000",0,1930,"Cadeau pour Thib et Aline",10,1.04,25,"A+",1,""],
+[148,"Châlons 17",0,"1/200 000",0,1927,"plis, nickel",9,1.04,20,"A",0,""],
+[149,"Moutiers XXXV-33 n°1",0,"1/20 000",0,1930,"plis, froissé",9,1.04,15,"B-",0,""],
+[150,"Bourg st Andéol XXIX-39",0,"1/50 000",0,1968,"plis, bord legé",9,1.04,15,"B",0,""],
+[151,"Meyrueis XXVI-40",0,"1/50 000",0,1966,"plis, bord",9,1.04,15,"B",0,""],
+[152,"Vizille XXXIII-35 (7 et 8)",0,"1/25 000",0,1953,"plis, chiffonée",6,1.04,15,"B-",0,""],
+[153,"La Rochette XXXIV-33 (3et4)",0,"1/25 000",0,1953,"plis, chiffonée, dechiré",3,1.04,15,"B-",0,"Belgique"],
+[154,"Grenoble Nord Est 178","État Major",0,0,1920,"plis, chiffonée",6,1.04,15,"B-",0,"France"],
+[155,"Alberville SE 169 bis ww2","État Major",0,0,1941,"plis nul, chiffonée",5,1.04,20,"B-",0,"France"],
+[156,"St jean de Maurienne SO 179","État Major",0,0,1927,"plis nul, chiffonée",5,1.04,15,"B-",0,"France"],
+[157,"Bourg SO 152","État Major",0,0,1932,"plis nul, chiffonée",5,1.04,15,"B-",0,"France"],
+[158,"Chambery SE 169","État Major",0,0,1920,"plis nul, chiffonée",5,1.04,15,"B-",0,"France"],
+[159,"Chambery SE 169","État Major",0,0,1920,"plis nul, chiffonée",5,1.04,15,"B-",0,"France"],
+[160,"St jean de Maurienne SO 179","État Major",0,0,1927,"plis nul, chiffonée, tres abimé",5,1.04,5,"B-",0,"France"],
+[161,"Wervik-Menen 28/7-8",0,"1/25 000",0,1966,"plis, nickel",9,0.69,9,"A",1,""],
+[162,"Nieuwkerk-Mesen 28/5-6",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[163,"Poperinge-Ieper 28/1-2",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[164,"Kapelhoek-Hoogstade 19/7-8",0,"1/25 000",0,1967,"plis, nickel",9,0.69,9,"A",0,""],
+[165,"Geluveld-Moorsele 28/3-4",0,"1/25 000",0,1964,"plis, nickel",9,0.69,9,"A",0,""],
+[166,"De Moeren-Veurne 19/3-4",0,"1/25 000",0,1967,"plis, nickel",9,0.69,9,"A",0,""],
+[167,"Losheimergraben 50a/5-6",0,"1/25 000",0,1960,"plis, nickel Allemagne",9,0.69,9,"A",0,""],
+[168,"Neufchateau-Juseret 65/5-6",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[169,"Bilzen-Veldwezelt 34/1-2",0,"1/25 000",0,1957,"plis, nickel",9,0.69,9,"A",1,""],
+[170,"Gemmenich-Botselaar 35/5-6",0,"1/25 000",0,1956,"plis, nickel Pays Bas et All",9,0.69,9,"A",0,""],
+[171,"Seraing-Chêné 42/5-6",0,"1/25 000",0,1958,"plis, nickel",9,0.69,9,"A",0,""],
+[172,"Antoing-Leuze 37/7-8",0,"1/25 000",0,1964,"plis, nickel",9,0.69,9,"A",0,""],
+[173,"Retie-Mol 17/1-2",0,"1/25 000",0,1961,"plis, nickel",9,0.69,9,"A",0,""],
+[174,"De Seule-Ploegsteert 36/1-2",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[175,"De Seule-Ploegsteert 36/1-2",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[176,"Tongeren-Herderen 34/5-6",0,"1/25 000",0,1958,"plis, nickel",9,0.69,9,"A",0,""],
+[177,"Neerharen 34/3-4",0,"1/25 000",0,1957,"plis, nickel Pays bas",9,0.69,9,"A",1,""],
+[178,"Neufchâteau-Juseret 65/5-6",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[179,"Alleur-Liége 42/1-2",0,"1/25 000",0,1958,"plis, nickel Liege",9,0.69,9,"A",0,"Belgique"],
+[180,"Champlon-La Roche en Ardenne 60/1-2",0,"1/25 000",0,1963,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[181,"Jurbise-Obourg 45/3-4",0,"1/25 000",0,1966,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[182,"Dalhem-Herve 42/3-4",0,"1/25 000",0,1958,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[183,"Amberloup-Flamierge 60/5-6",0,"1/25 000",0,1963,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[184,"Reuland-Gross-Bohlsheid 56/7-8",0,"1/25 000",0,1962,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[185,"Hotton-Doshamps 55/5-6",0,"1/25 000",0,1963,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[186,"Durbuy-Mormont 55/1-2",0,"1/25 000",0,1963,"plis, nickel",9,0.69,9,"A",0,"Belgique"],
+[187,"Sainte Marie Chevigny-Sibret 65/1-2",0,"1/25 000",0,1965,"plis, nickel",9,0.69,9,"A",0,""],
+[188,"Hamoir-Ferrières 49/5-6",0,"1/25 000",0,1960,"plis, nickel",9,0.69,9,"A",0,""],
+[189,"Flobecq-Nederbrakel 30/5-6",0,"1/25 000",0,1956,"plis, nickel",9,0.69,9,"A",0,""],
+[190,"Lens-Soignies 38/7-8",0,"1/25 000",0,1963,"plis, nickel",9,0.69,9,"A",0,""],
+[191,"Amériques","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France|Amérique"],
+[192,"Italy","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France"],
+[193,"Allemagne","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France|Allemagne"],
+[194,"UK","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France"],
+[195,"Afrique du nord Colonies","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",0,"France|Afrique"],
+[196,"Afrique et colonies","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",0,"France|Afrique"],
+[197,"Espagne avec Tanger Maroc","Mini cartes",0,0,1948,"Nickel pour bonus, dechirure",7,0.9,10,"A",0,"France|Espagne"],
+[198,"Grece","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France"],
+[199,"Belgique","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France|Belgique"],
+[200,"Chine","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",0,"France"],
+[201,"Canada","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France|Canada"],
+[202,"Europe","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",0,"France|International"],
+[203,"Asie","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France|Asie"],
+[204,"Etats unis","Mini cartes",0,0,1948,"Nickel pour bonus, dechirure",7,0.9,10,"A",1,"France"],
+[205,"Afrique occidental","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",0,"France|Afrique"],
+[206,"Indochine","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France"],
+[207,"Egypte","Mini cartes",0,0,1948,"Nickel pour bonus",10,0.9,10,"A",1,"France|Égypte"],
+[208,"Paris 48","État Major",0,0,1888,"plié, froissur et tache",7,7.99,35,"A",0,"France"],
+[209,"Paris 15",0,"1/520 000",0,1852,"plié, petite dechirure, taches",4,8,30,"A",0,""],
+[210,"Pays Baltes","Front WW1",0,0,1915,"plis central, dechirur gauche",6,1.14,25,"A",1,"France"],
+[211,"Balkans est, Roumanie","Front WW1",0,0,1915,"plis central, froissé",9,1.14,25,"A",0,"France"],
+[212,"Carpathes,Roumanie, Balkans","Front WW1",0,0,1916,"plis cenral et trous",6,1.14,25,"B",0,"France"],
+[213,"Theatre oriental, pologne","Front WW1",0,0,1915,"plis central, nickel",9,1.14,25,"A",0,"France|Pologne"],
+[214,"Lauraine et Alsace front 1916","Front WW1",0,0,0,"plis central, nickel",9,1.14,25,"A",0,"France"],
+[215,"de l'Yser a l'Aisne Front 1916","Front WW1",0,0,0,"plis central, déchirure",6,1.14,25,"A",0,"France|Belgique"],
+[216,"de Soissons a Nancy Front 1916","Front WW1",0,0,0,"plis central, nickel",9,1.14,25,"A",0,"France"],
+[217,"Les pays Balkaniques","Front WW1",0,0,1915,"plis central, une tache",7,1.14,25,"A",0,"France"],
+[218,"Les fronts d'Asie","Front WW1",0,0,1916,"plis central, nickel",9,1.14,25,"A",0,"France|Asie"],
+[219,"Le Front Italien","Front WW1",0,0,1915,"plis central, trace",9,1.14,25,"B",0,"France|Italie"],
+[220,"Italie Serbie","Front WW1",0,0,1915,"plis central, mal plié nickel",9,1.14,25,"A",0,"France|Italie"],
+[221,"Italie 1943",0,0,0,1943,"plie et dechirure",6,7.98,17,"A-",1,"Italie"],
+[222,"France nouveaux departement","Atlas",0,0,0,"nickel",10,1.12,17,"A+",0,"International"],
+[223,"Belgique","Atlas",0,0,0,"nickel",10,1.12,17,"A+",0,"Belgique"],
+[224,"Mapemonde et vocabulaire","Atlas",0,0,0,"nickel",10,1.12,17,"A+",0,"International"],
+[225,"Ameriques","Atlas",0,0,0,"nickel",10,1.12,17,"A+",1,"Amérique"],
+[226,"Asie","Atlas",0,0,0,"nickel",10,1.12,17,"A+",1,"Asie"],
+[227,"Europe","Atlas",0,0,0,"nickel",10,1.12,17,"A+",1,"International"],
+[228,"Oceanie","Atlas",0,0,0,"nickel",10,1.12,17,"A+",1,"Océanie"],
+[229,"Afrique","Atlas",0,0,0,"nickel",10,1.12,17,"A+",1,"Afrique"],
+[230,"5 part. du monde - Colonies",0,0,0,1940,"Dechirures renforcé der",7,13.98,25,"A-",0,"International"],
+[231,"Front Italie Autriche ww1",0,0,0,0,"sale",10,1.37,17,"A-",0,"Autriche|Italie"],
+[232,"Europe Central recto verso",0,0,0,0,"un peu dechiré",7,1.37,20,"A",1,"International"],
+[233,"Camp de mailly",0,0,"Environs",1901,"jointure abimé et bord, stylo",8,1.37,10,"B-",0,""],
+[234,"Monbélird S.E. 114","État Major",0,0,1889,"good",9,1.37,10,"B",0,"France"],
+[235,"Dijon S.E. 112","État Major",0,0,1889,"trous plis",6,1.37,10,"B-",0,"France"],
+[236,"En dessous de Nevers",0,0,0,0,"dechirer",7,1.37,5,"C-",0,""],
+[237,"Chalon sur Saone",0,0,0,0,"nickel",10,1.37,20,"B+",0,""],
+[238,"Carte pour suivre les op, ww1",0,0,0,1914,"dechirer",7,1.37,17,"A",0,""],
+[239,"Nancy 69 ww1 petite","État Major",0,0,1889,"ok",9,1.37,10,"B",0,"France"],
+[240,"lure 100 ww1","État Major",0,0,1889,"ok",9,1.37,10,"B",1,"France"],
+[241,"lure 100 ww1","État Major",0,0,1913,"sale bat droite",10,1.37,15,"B",0,"France"],
+[242,"Operations de la guerre",0,0,0,0,"good",9,1.37,25,"A+",1,""],
+[243,"Bourg S.O. 159","État Major",0,0,1897,"abimé",8,1.37,10,"B-",0,"France"],
+[244,"Environs de Lyon",0,0,"Environs",1902,"good",9,1.37,15,"B+",0,""],
+[245,"Mirecourt S.E.","État Major",0,0,1896,"plis en plus",9,1.37,10,"B-",0,"France"],
+[246,"Lyon","État Major",0,0,1902,"abimé",8,1.37,10,"B-",1,"France"],
+[247,"Pays bas","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[248,"France x2","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[249,"japon","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[250,"Madagascar","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Madagascar"],
+[251,"Asie","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Asie"],
+[252,"Mexique","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Mexique"],
+[253,"Oceanie","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Océanie"],
+[254,"Paris","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[255,"Turqui","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Turquie"],
+[256,"scandinavie","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Scandinavie"],
+[257,"russie","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Russie"],
+[258,"Italie","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Italie"],
+[259,"afrique du nord","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Afrique"],
+[260,"suisse","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Suisse"],
+[261,"La terre continents","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[262,"Uk","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[263,"grece","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[264,"indochine","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[265,"algerie","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[266,"allemagne","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Allemagne"],
+[267,"amerique","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Amérique"],
+[268,"belgique","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Belgique"],
+[269,"canada","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Canada"],
+[270,"Espagne, portugale","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"Espagne|Portugal"],
+[271,"afrique","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"Afrique"],
+[272,"Mapemonde","Atlas 1922",0,0,1922,"good",9,0.37,10,0,1,"International"],
+[273,"Mer","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[274,"ciel","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[275,"ww1 front fr grand format","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[276,"France grand format","Atlas 1922",0,0,1922,"good",9,0.37,10,0,0,"International"],
+[277,"Carte du front fr",0,0,0,0,0,0,5.68,15,0,1,""],
+[278,"Frontiere italo-Autrichienne",0,0,0,0,"musique au dos",10,1.01,20,0,1,""],
+[279,"Pays Baltes","Front WW1",0,0,1915,"plis central, dechirur gauche",6,1.01,25,0,0,"France"],
+[280,"Balkans est, Roumanie","Front WW1",0,0,1915,"plis central, froissé",9,1.01,25,0,0,"France"],
+[281,"Les pays Balkaniques","Front WW1",0,0,1915,"plis central, une tache",7,1.01,25,0,0,"France"],
+[282,"Theatre oriental, pologne","Front WW1",0,0,1915,"plis central, stylo rouge",9,1.01,25,0,0,"France|Pologne"],
+[283,"Lauraine et Alsace front 1916","Front WW1",0,0,0,"plis central, nickel",9,1.01,25,0,0,"France"],
+[284,"de Soissons a Nancy Front 1916","Front WW1",0,0,0,"plis central, nickel",9,1.01,25,0,0,"France"],
+[285,"Les fronts d'Asie","Front WW1",0,0,1916,"plis central, nickel",9,1.01,25,0,1,"France|Asie"],
+[286,"Le Front Italien","Front WW1",0,0,1915,"plis central, trace",9,1.01,25,0,0,"France|Italie"],
+[287,"Italie Serbie","Front WW1",0,0,1915,"plis central, mal plié nickel",9,1.01,25,0,0,"France|Italie"],
+[288,"Carte du front Nord est","Front WW1",0,0,1915,"plis central",9,1.01,10,0,0,"France"],
+[289,"Carte du front Sud ouest","Front WW1",0,0,1915,"plis central",9,1.01,10,0,0,"France"],
+[290,"Bar le duc 51 ww1","État Major",0,0,1913,"petits trous",7,1.82,25,0,1,"France"],
+[291,"Chalon 50 ww1","État Major",0,0,1912,"petits trous et taches en haut",5,1.82,30,0,0,"France"],
+[292,"Commercy 52 ww1","État Major",0,0,1912,"petits trous",7,1.82,20,0,0,"France"],
+[293,"Verdun 35 ww1","État Major",0,0,1913,"dechirures plis",6,1.82,30,0,0,"France|International"],
+[294,"Arcis 67 ww1","État Major",0,0,1911,"clean taches legeres",9,1.82,30,0,0,"France"],
+[295,"Bruyeres",0,0,0,1930,"sale",10,1.82,15,0,0,""],
+[296,"Hamburg","État Major allemand",0,0,1880,"baver",8,2.71,10,0,1,""],
+[297,"Vistule et Frische Haff","État Major allemand",0,0,1880,0,0,2.71,10,0,0,""],
+[298,"Dresde et suisse saxonne","État Major allemand",0,0,1880,"baver",8,2.71,10,0,0,"Allemagne|Suisse"],
+[299,"Berlin","État Major allemand",0,0,1880,"baver",8,2.71,10,0,1,"Allemagne"],
+[300,"Rhin de mayence a coblenz","État Major allemand",0,0,1880,"baver",8,2.71,10,0,0,""],
+[301,"Niort - Chateauroux","Michelin",0,0,1972,0,0,1,5,0,0,"France"],
+[302,"France Nord","Michelin",0,0,1991,0,0,1,5,0,0,"France"],
+[303,"Nord 59",0,0,0,0,0,0,1,5,0,0,""],
+[304,"Bordelais Perigord",0,0,0,0,0,0,1,5,0,0,""],
+[305,"Carte Europe Vintage",0,0,0,0,0,0,11.93,0,0,0,"International"],
+[306,"Bar le duc 51 ww1","État Major",0,0,1911,"good crayon a papier",9,1.43,25,0,0,"France"],
+[307,"Reims 34 ww1","État Major",0,0,1913,"good crayon a papier",9,1.43,25,0,0,"France"],
+[308,"Verdun 35 ww1","État Major",0,0,1911,"good crayon a papier",9,1.43,30,0,0,"France|International"],
+[309,"Laon 22 ww1","État Major",0,0,1912,"good crayon a papier",9,1.43,25,0,0,"France"],
+[310,"Strasbourg n°28",0,"1/200 000",0,0,"dechiré mais ça va",7,1.43,15,0,0,""],
+[311,"Chalons n°17",0,"1/200 000",0,0,"good",9,1.43,17,0,0,""],
+[312,"Rocroi 14 ww1","État Major",0,0,1913,"ok",9,1.43,25,0,0,"France"],
+[313,"Verdun 35 ww1","État Major",0,0,1913,"good",9,1.43,30,0,0,"France|International"],
+[314,"Laon ww1",0,"1/50 000",0,1912,"ecriture pas ouf",9,1.43,12,0,0,""],
+[315,"Soisson 33 ww1",0,"1/50 000",0,1912,"froissé pas ouf",10,1.43,0,0,0,""],
+[316,"Chalon",0,"1/200 000",0,0,"sale troué",7,1.43,10,0,0,""],
+[317,"Verdun 35 ww1","État Major",0,0,1911,"shema distance artillerie ?",10,1.43,30,0,0,"France|International"],
+[318,"Chalon 50 ww1","État Major",0,0,1896,"bien",10,1.43,25,0,0,"France"],
+[319,"Mezieres 24 ww1","État Major",0,0,1913,"good",9,1.43,25,0,0,"France"]
+];
+
 const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const STATUS_LABEL = { d: "Disponible", s: "Numéro spécial", v: "Vendu", r: "Réservé" };
 const RESERVE_DAYS = 7;
@@ -528,6 +877,21 @@ let statusEditId = null;
 let viewMode = "calendrier";
 let colEditOuvert = false;
 let tabsOpen = false;
+
+// ---------- Module Cartes ----------
+const CARTES_KEY = "mja-cartes-v1";
+let univers = "journaux";       // "journaux" | "cartes"
+let cartes = [];
+let cartesChargees = false;
+let cDetailId = null;
+let cRecherche = "";
+let cPublic = new Set();
+let cProvSel = "";
+let cFiltres = new Set(["d","s"]);
+let cEtatMin = 0;
+let cTriChamp = "num";
+let cPubOuvert = false;
+let cProvOuvert = false;
 let searchQuery = "";
 let detailId = null;
 
@@ -828,7 +1192,9 @@ function matchesSearch(e, parsed) {
 }
 
 function render() {
+  renderUnivers();
   renderTopbar();
+  if (univers === "cartes") { renderCartes(); return; }
   renderDisclaimer();
   renderTabs();
   renderStats();
@@ -843,6 +1209,26 @@ function render() {
   document.querySelector(".jr-backup").style.display = isAdmin ? "block" : "none";
   const bt = document.getElementById("jrTagToolBtn");
   if (bt) bt.style.display = (isAdmin && planTags().length) ? "block" : "none";
+}
+
+function renderUnivers() {
+  const zoneJ = ["jrTabs","jrStats","jrAlertZone","jrTagCloud","jrCount","jrCalendar","jrList","jrSearch","jrDisclaimer","jrColEdit"];
+  const cartesOn = univers === "cartes";
+  document.getElementById("jrCartes").style.display = cartesOn ? "block" : "none";
+  document.querySelector(".jr-viewbar").style.display = cartesOn ? "none" : "flex";
+  document.querySelector(".jr-search").style.display = cartesOn ? "none" : "flex";
+  document.querySelector(".jr-addbar").style.display = cartesOn ? "none" : "";
+  document.querySelector(".jr-backup").style.display = cartesOn ? "none" : "";
+  zoneJ.forEach(id => { const e = document.getElementById(id); if (e && id !== "jrSearch") e.style.display = cartesOn ? "none" : ""; });
+  document.getElementById("jrTitre").textContent = cartesOn ? "Mes Cartes Anciennes" : "Mon Journal Ancien";
+  document.querySelectorAll(".jr-ubtn").forEach(b => {
+    b.className = "jr-ubtn" + (b.dataset.univ === univers ? " on" : "");
+    b.onclick = async () => {
+      univers = b.dataset.univ;
+      if (univers === "cartes") await chargerCartes();
+      render();
+    };
+  });
 }
 
 function renderTopbar() {
@@ -1131,7 +1517,7 @@ function renderList() {
       </div>` : `<span class="jr-row-bas"></span>`}
       <div class="jr-row-act">
         ${isAdmin || (e.status !== "d" && e.status !== "s") ? "" :
-          `<button class="jr-add-panier ${dansPanier(e.id) ? "on" : ""}" data-panier="${e.id}" aria-label="Ajouter à ma sélection">${dansPanier(e.id) ? "✓" : "+"}</button>`}
+          `<button class="jr-add-panier ${dansPanier("j:"+e.id) ? "on" : ""}" data-panier="j:${e.id}" aria-label="Ajouter à ma sélection">${dansPanier("j:"+e.id) ? "✓" : "+"}</button>`}
       </div>
       `}
     </div>`;
@@ -1345,7 +1731,8 @@ function chargerPanier() {
     panier = raw ? JSON.parse(raw) : [];
   } catch (e) { panier = []; }
   // on nettoie les références disparues
-  panier = panier.filter(id => entries.some(e => e.id === id));
+  panier = panier.map(x => x.indexOf(":") === 1 ? x : "j:" + x)
+                 .filter(x => x.slice(0,2) === "c:" ? true : entries.some(e => e.id === x.slice(2)));
 }
 
 function sauverPanier() {
@@ -1360,13 +1747,24 @@ function basculerPanier(id) {
   sauverPanier();
 }
 
+function itemPanier(cle) {
+  if (cle.slice(0,2) === "c:") {
+    const c = cartes.find(x => x.id === cle.slice(2));
+    return c ? { type: "carte", obj: c, libelle: `Carte n°${c.num} — ${c.nom}` } : null;
+  }
+  const e = entries.find(x => x.id === cle.slice(2));
+  return e ? { type: "journal", obj: e,
+    libelle: `${e.day} ${MOIS[e.month-1]} ${e.year} — ${collName(e.collectionId)}` } : null;
+}
+
 function texteCommande() {
-  const items = panier.map(id => entries.find(e => e.id === id)).filter(Boolean);
-  items.sort((a,b) => a.year - b.year || a.month - b.month || a.day - b.day);
-  const lignes = items.map(e =>
-    `• ${e.day} ${MOIS[e.month-1]} ${e.year} — ${collName(e.collectionId)}`
-  );
-  return `Ma sélection — ${items.length} ${items.length > 1 ? "journaux" : "journal"}\n` + lignes.join("\n");
+  const items = panier.map(itemPanier).filter(Boolean);
+  const j = items.filter(i => i.type === "journal");
+  const c = items.filter(i => i.type === "carte");
+  let t = `Ma sélection — ${items.length} article${items.length > 1 ? "s" : ""}\n`;
+  if (j.length) t += "\nJournaux :\n" + j.map(i => "• " + i.libelle).join("\n") + "\n";
+  if (c.length) t += "\nCartes :\n" + c.map(i => "• " + i.libelle).join("\n") + "\n";
+  return t.trim();
 }
 
 function renderPanier() {
@@ -1374,17 +1772,16 @@ function renderPanier() {
   if (!bar) return;
   if (panier.length === 0) { bar.innerHTML = ""; bar.style.display = "none"; return; }
   bar.style.display = "block";
-  const items = panier.map(id => entries.find(e => e.id === id)).filter(Boolean);
-  items.sort((a,b) => a.year - b.year || a.month - b.month || a.day - b.day);
+  const items = panier.map(c => ({ cle: c, it: itemPanier(c) })).filter(x => x.it);
 
   bar.innerHTML = `
     <button class="jr-panier-toggle" id="jrPanierToggle">
       <span>Ma sélection · ${panier.length}</span><span>${panierOuvert ? "▼" : "▲"}</span>
     </button>
     ${panierOuvert ? `<div class="jr-panier-corps">
-      ${items.map(e => `<div class="jr-panier-ligne">
-        <span>${e.day} ${MOIS[e.month-1]} ${e.year} <em>${escapeHtml(collName(e.collectionId))}</em></span>
-        <button data-retire="${e.id}" aria-label="Retirer">✕</button>
+      ${items.map(x => `<div class="jr-panier-ligne">
+        <span>${escapeHtml(x.it.libelle)} <em>${x.it.type === "carte" ? "carte" : "journal"}</em></span>
+        <button data-retire="${x.cle}" aria-label="Retirer">✕</button>
       </div>`).join("")}
       <div class="jr-panier-actions">
         <button id="jrPanierCopy">Copier ma sélection</button>
@@ -1397,7 +1794,10 @@ function renderPanier() {
     panierOuvert = !panierOuvert; renderPanier();
   });
   bar.querySelectorAll("[data-retire]").forEach(b => {
-    b.addEventListener("click", () => { basculerPanier(b.dataset.retire); renderPanier(); renderView(); });
+    b.addEventListener("click", () => {
+      basculerPanier(b.dataset.retire); renderPanier();
+      if (univers === "cartes") renderCartes(); else renderView();
+    });
   });
   const copy = document.getElementById("jrPanierCopy");
   if (copy) copy.addEventListener("click", () => {
@@ -1410,7 +1810,8 @@ function renderPanier() {
   });
   const vider = document.getElementById("jrPanierVide");
   if (vider) vider.addEventListener("click", () => {
-    panier = []; sauverPanier(); panierOuvert = false; renderPanier(); renderView();
+    panier = []; sauverPanier(); panierOuvert = false; renderPanier();
+    if (univers === "cartes") renderCartes(); else renderView();
   });
 }
 
@@ -1725,13 +2126,423 @@ function collCouleur(id) {
   return PALETTE_COLL[(i < 0 ? 0 : i) % PALETTE_COLL.length];
 }
 
+// ---------- Cartes : accès aux données ----------
+function carteFromRow(r) {
+  return { id: r.id, num: r.num, nom: r.nom || "", provenance: r.provenance || "",
+    echelle: r.echelle || "", sujet: r.sujet || "", annee: r.annee || null,
+    etatTxt: r.etat_txt || "", etatNote: r.etat_note || null, statut: r.statut || (r.vendu ? "v" : "d"),
+    achat: r.achat == null ? null : Number(r.achat),
+    valeur: r.valeur == null ? null : Number(r.valeur),
+    cote: r.cote || "", vendu: !!r.vendu, venduLe: r.vendu_le ? new Date(r.vendu_le).getTime() : null,
+    destination: r.destination || "", pays: r.pays || [], note: r.note || "", photo: r.photo || null };
+}
+function carteToRow(c) {
+  return { id: c.id, num: c.num, nom: c.nom, provenance: c.provenance || null,
+    echelle: c.echelle || null, sujet: c.sujet || null, annee: c.annee || null,
+    etat_txt: c.etatTxt || null, etat_note: c.etatNote || null, statut: c.statut || "d",
+    achat: c.achat, valeur: c.valeur, cote: c.cote || null, vendu: c.statut === "v",
+    vendu_le: c.venduLe ? new Date(c.venduLe).toISOString() : null,
+    destination: c.destination || null, pays: c.pays || [], note: c.note || null, photo: c.photo || null };
+}
+function seedCartes() {
+  return SEED_CARTES.map(a => ({
+    id: "c" + a[0], num: a[0], nom: a[1] || "", provenance: a[2] || "", echelle: a[3] || "",
+    sujet: a[4] || "", annee: a[5] || null, etatTxt: a[6] || "", etatNote: a[7] || null,
+    achat: a[8] || null, valeur: a[9] || null, cote: a[10] || "",
+    statut: a[11] ? "v" : ((a[12]||"").indexOf("International") >= 0 ? "s" : "d"),
+    venduLe: null, destination: "", pays: a[12] ? a[12].split("|") : [], note: "", photo: null,
+    reservedUntil: null
+  }));
+}
+async function chargerCartes() {
+  if (cartesChargees) return;
+  try {
+    const rows = await rest("cartes?select=*&order=num.asc&limit=5000");
+    if (rows && rows.length) { cartes = rows.map(carteFromRow); cartesChargees = true; sauverCartesLocal(); return; }
+    cartes = seedCartes();
+  } catch (e) {
+    try {
+      const raw = window.localStorage.getItem(CARTES_KEY);
+      cartes = raw ? JSON.parse(raw) : seedCartes();
+    } catch (e2) { cartes = seedCartes(); }
+  }
+  cartesChargees = true;
+}
+function sauverCartesLocal() {
+  try { window.localStorage.setItem(CARTES_KEY, JSON.stringify(cartes)); } catch (e) {}
+}
+async function persistCarte(c) {
+  if (cloudOk && isAdmin) {
+    try {
+      await rest("cartes", { method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify([carteToRow(c)]) });
+    } catch (err) { showStorageWarning("Enregistrement impossible : " + err.message); }
+  }
+  sauverCartesLocal();
+}
+async function pushCartes() {
+  const rows = cartes.map(carteToRow);
+  for (let i = 0; i < rows.length; i += 150) {
+    await rest("cartes", { method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify(rows.slice(i, i + 150)) });
+  }
+}
+
+// ---------- Cartes : filtrage ----------
+function cartesFiltrees() {
+  const q = normalize(cRecherche.trim());
+  return cartes.filter(c => {
+    if (cFiltres.size && !cFiltres.has(c.statut || "d")) return false;
+    if (cEtatMin && (!c.etatNote || c.etatNote < cEtatMin)) return false;
+    if (cPublic.size && !(c.pays || []).some(p => cPublic.has(p))) return false;
+    if (cProvSel && (c.provenance || "Sans provenance") !== cProvSel) return false;
+    if (q) {
+      const foin = normalize([c.nom, c.provenance, c.sujet, c.echelle, c.annee, c.cote, (c.pays||[]).join(" ")].join(" "));
+      if (!foin.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b) => {
+    if (cTriChamp === "etat") return (b.etatNote||0) - (a.etatNote||0) || a.num - b.num;
+    if (cTriChamp === "valeur") return (b.valeur||0) - (a.valeur||0) || a.num - b.num;
+    if (cTriChamp === "annee") return (a.annee||9999) - (b.annee||9999) || a.num - b.num;
+    return a.num - b.num;
+  });
+}
+
+function couleurEtat(n) {
+  if (!n) return { bg: "#ece6d8", fg: "#8a8070" };
+  if (n >= 9) return { bg: "#1f5417", fg: "#fff" };
+  if (n >= 8) return { bg: "#3a7d2a", fg: "#fff" };
+  if (n >= 6) return { bg: "#8dc077", fg: "#122c0d" };
+  if (n >= 5) return { bg: "#e8d08a", fg: "#5a4108" };
+  return { bg: "#d9a5a5", fg: "#5a1a1a" };
+}
+
+function renderCartes() {
+  const zone = document.getElementById("jrCartes");
+
+  // --- provenances : jouent le rôle des collections ---
+  const provTous = {};
+  cartes.forEach(c => { const p = c.provenance || "Sans provenance"; provTous[p] = (provTous[p]||0)+1; });
+  const provTri = Object.keys(provTous).sort((a,b) => provTous[b]-provTous[a] || a.localeCompare(b));
+  const VIS = 5;
+  let enAvant = provTri.slice(0, VIS), caches = provTri.slice(VIS);
+  if (!cProvOuvert && cProvSel && caches.includes(cProvSel)) {
+    enAvant.push(cProvSel); caches = caches.filter(x => x !== cProvSel);
+  }
+  const provAff = cProvOuvert ? provTri : enAvant;
+
+  // --- compteurs par statut, dans la provenance choisie ---
+  const dansProv = c => !cProvSel || (c.provenance || "Sans provenance") === cProvSel;
+  const cpt = { d:0, s:0, v:0, r:0 };
+  cartes.filter(dansProv).forEach(c => { cpt[c.statut || "d"]++; });
+
+  // --- publics visés ---
+  const paysTous = {};
+  cartes.filter(dansProv).filter(c => !cFiltres.size || cFiltres.has(c.statut||"d"))
+        .forEach(c => (c.pays||[]).forEach(p => { paysTous[p] = (paysTous[p]||0)+1; }));
+  const paysTri = Object.keys(paysTous).sort((a,b) => paysTous[b]-paysTous[a] || a.localeCompare(b));
+
+  const liste = cartesFiltrees();
+  const coutStock = liste.reduce((s,c) => s + (c.achat||0), 0);
+  const valStock  = liste.reduce((s,c) => s + (c.valeur||0), 0);
+  const LBL = { d:"Disponibles", s:"Passe-partout", v:"Vendues", r:"Réservées" };
+
+  zone.innerHTML = `
+    <div class="jr-tabs">
+      <button class="jr-tab ${!cProvSel?'active':''}" data-cprov="">Toutes <span class="jr-tab-n">${cartes.length}</span></button>
+      ${provAff.map(p => `<button class="jr-tab ${cProvSel===p?'active':''}" data-cprov="${escapeHtml(p)}" style="${cProvSel===p?`background:#2f4858;color:#fff;border-color:#2f4858`:``}">${escapeHtml(p)} <span class="jr-tab-n">${provTous[p]}</span></button>`).join("")}
+      ${caches.length && !cProvOuvert ? `<button class="jr-tab-plus" id="cProvMore">+${caches.length} autres ▾</button>` : ""}
+      ${cProvOuvert ? `<button class="jr-tab-plus" id="cProvLess">Réduire ▴</button>` : ""}
+    </div>
+
+    <div class="jr-stats">
+      ${["d","s","v","r"].map(k => `<button class="jr-stat ${cFiltres.has(k)?'on':''}" data-cfilt="${k}">
+        <div class="n">${cpt[k]}</div><div class="l">${LBL[k]}</div></button>`).join("")}
+    </div>
+
+    <div class="jr-search">
+      <input id="cSearch" type="text" value="${escapeHtml(cRecherche)}" placeholder="Verdun, Belgique, 1913, Atlas..." />
+      <button id="cClear">Effacer</button>
+    </div>
+
+    <div class="jr-cloud">
+      <button class="jr-tagtoggle ${cPublic.size?'on':''}" id="cPubToggle">
+        <span>${cPublic.size ? "Public visé · " + cPublic.size + " sélectionné" + (cPublic.size>1?"s":"") : "Public visé (" + paysTri.length + ")"}</span>
+        <span class="jr-caret">${cPubOuvert ? '▲' : '▼'}</span>
+      </button>
+      <div class="jr-tagmenu" style="display:${cPubOuvert?'flex':'none'};">
+        ${paysTri.map(p => `<button class="jr-cloudtag ${cPublic.has(p)?'on':''}" data-pays="${escapeHtml(p)}">${escapeHtml(p)} <span>${paysTous[p]}</span></button>`).join("")}
+        ${cPublic.size ? `<button class="jr-clearTags" id="cPubClear">Tout désélectionner</button>` : ""}
+      </div>
+    </div>
+
+    <div class="jr-cfiltres">
+      <select id="cEtat" class="jr-selmini">
+        <option value="0"${cEtatMin==0?' selected':''}>État : tous</option>
+        <option value="9"${cEtatMin==9?' selected':''}>9 et plus</option>
+        <option value="8"${cEtatMin==8?' selected':''}>8 et plus</option>
+        <option value="6"${cEtatMin==6?' selected':''}>6 et plus</option>
+        <option value="5"${cEtatMin==5?' selected':''}>5 et plus</option>
+      </select>
+      <select id="cTri" class="jr-selmini">
+        <option value="num"${cTriChamp==='num'?' selected':''}>Tri : numéro</option>
+        <option value="etat"${cTriChamp==='etat'?' selected':''}>Tri : état</option>
+        <option value="valeur"${cTriChamp==='valeur'?' selected':''}>Tri : valeur</option>
+        <option value="annee"${cTriChamp==='annee'?' selected':''}>Tri : année</option>
+      </select>
+    </div>
+
+    ${!isAdmin ? `<p class="jr-disclaimer">La note d'état va de 10 (carte parfaite, à plat) à 1. Une carte pliée perd un point : c'est le pliage d'origine, pas un défaut. Le public visé est indicatif et vous aide à repérer les cartes en lien avec votre pays.</p>` : ""}
+
+    <div class="jr-count">${liste.length} carte${liste.length!==1?'s':''}${isAdmin ? ` · ${coutStock.toFixed(2)} € d'achat · ${valStock} € estimés` : ""}</div>
+    <div id="cListe">${liste.map(c => cDetailId === c.id ? ficheCarte(c) : ligneCarte(c)).join("") || `<div class="jr-empty">Aucune carte ne correspond.</div>`}</div>`;
+
+  brancherCartes();
+  renderPanier();
+}
+
+function ligneCarte(c) {
+  const e = couleurEtat(c.etatNote);
+  const st = c.statut || "d";
+  const LBL = { d:"Disponible", s:"Passe-partout", v:"Vendue", r:"Réservée" };
+  return `<div class="jr-row" data-cid="${c.id}">
+    <div class="jr-row-top">
+      <div class="jr-row-open jr-copen" data-copen="${c.id}">
+        <span class="jr-cnum">${c.num}</span>
+        <span class="jr-cetat" style="background:${e.bg};color:${e.fg}">${c.etatNote ? c.etatNote + "/10" : "—"}</span>
+      </div>
+      <span class="jr-badge jr-badge-${st}">${LBL[st]}</span>
+      <div class="jr-row-open jr-copen" data-copen="${c.id}" style="flex:1;min-width:0;">
+        <span class="jr-cnom">${escapeHtml(c.nom)}</span>
+      </div>
+      <div class="jr-row-act">
+        ${(!isAdmin && (st === "d" || st === "s"))
+          ? `<button class="jr-add-panier ${dansPanier("c:"+c.id)?"on":""}" data-panier="c:${c.id}" aria-label="Ajouter à ma sélection">${dansPanier("c:"+c.id)?"✓":"+"}</button>` : ""}
+      </div>
+    </div>
+    <div class="jr-row-bas jr-copen" data-copen="${c.id}">
+      ${c.annee ? `<span class="jr-cinfo">${c.annee}</span>` : ""}
+      ${c.provenance ? `<span class="jr-cinfo">${escapeHtml(c.provenance)}</span>` : ""}
+      ${c.echelle ? `<span class="jr-cinfo">${escapeHtml(c.echelle)}</span>` : ""}
+      ${(c.pays||[]).slice(0,3).map(p => `<span class="jr-cpays">${escapeHtml(p)}</span>`).join("")}
+      ${(c.pays||[]).length > 3 ? `<span class="jr-cpays jr-rowtag-plus">+${c.pays.length-3}</span>` : ""}
+      ${!(c.pays||[]).length ? `<span class="jr-capreciser">public à préciser</span>` : ""}
+    </div>
+  </div>`;
+}
+
+function ficheCarte(c) {
+  const e = couleurEtat(c.etatNote);
+  const st = c.statut || "d";
+  const LBL = { d:"Disponible", s:"Passe-partout", v:"Vendue", r:"Réservée" };
+  const marge = (c.valeur != null && c.achat != null) ? (c.valeur - c.achat).toFixed(2) : null;
+  const photo = c.photo ? `<img class="jr-photo" src="${photoUrl(c.photo)}" alt="Carte ${escapeHtml(c.nom)}" loading="lazy">` : "";
+
+  const entete = `
+    <div class="jr-detail-head">
+      <div>
+        <div class="jr-detail-date">n°${c.num} · ${escapeHtml(c.nom)}</div>
+        <div class="jr-detail-coll">${[c.annee, c.provenance, c.echelle, c.sujet].filter(Boolean).map(escapeHtml).join(" · ") || "—"}</div>
+      </div>
+      <button id="cClose" aria-label="Fermer">✕</button>
+    </div>
+    ${photo}
+    <div class="jr-cfiche-etat">
+      <span class="jr-badge jr-badge-${st}">${LBL[st]}</span>
+      <span class="jr-cetat jr-cetat-gros" style="background:${e.bg};color:${e.fg}">${c.etatNote ? c.etatNote + "/10" : "état non noté"}</span>
+      ${c.etatTxt ? `<span class="jr-cetat-txt">${escapeHtml(c.etatTxt)}</span>` : ""}
+      ${c.cote ? `<span class="jr-ccote">cote ${escapeHtml(c.cote)}</span>` : ""}
+    </div>`;
+
+  if (!isAdmin) {
+    return `<div class="jr-detail" id="cDetail">
+      ${entete}
+      <label class="jr-lbl">Public visé</label>
+      <div class="jr-tagwrap">
+        ${(c.pays||[]).map(p => `<span class="jr-tagpill">${escapeHtml(p)}</span>`).join("") || `<span class="jr-notags">Public à préciser</span>`}
+      </div>
+      ${(st === "d" || st === "s")
+        ? `<button class="jr-detail-panier ${dansPanier("c:"+c.id)?"on":""}" id="cPanierBtn">${dansPanier("c:"+c.id)?"✓ Dans ma sélection":"+ Ajouter à ma sélection"}</button>` : ""}
+    </div>`;
+  }
+
+  return `<div class="jr-detail" id="cDetail">
+    ${entete}
+
+    <label class="jr-lbl">Statut</label>
+    <div class="jr-statuspick">
+      ${["d","s","v","r"].map(k => `<button class="jr-badge jr-badge-${k} ${st===k?'cur':''}" data-cstat="${k}">${LBL[k]}</button>`).join("")}
+    </div>
+
+    <label class="jr-lbl">Public visé</label>
+    <div class="jr-tagwrap">
+      ${(c.pays||[]).map((p,i) => `<span class="jr-tagpill">${escapeHtml(p)}<button data-crm="${i}" aria-label="Retirer">×</button></span>`).join("") || `<span class="jr-notags">Public à préciser</span>`}
+    </div>
+    <div class="jr-tagadd">
+      <input type="text" id="cNewPays" autocomplete="off" placeholder="Ajouter un pays ou « International »" />
+      <button id="cAddPays" class="jr-btn">Ajouter</button>
+    </div>
+    <div class="jr-sugg" id="cSuggPays"></div>
+
+    <label class="jr-lbl">Photo de la carte</label>
+    <div class="jr-photo-actions">
+      <label class="jr-photo-btn">${c.photo ? "Remplacer" : "Ajouter une photo"}
+        <input type="file" id="cPhotoInput" accept="image/*" style="display:none">
+      </label>
+      ${c.photo ? `<button class="jr-photo-del" id="cPhotoDel">Retirer</button>` : ""}
+    </div>
+    <p class="jr-photo-msg" id="cPhotoMsg"></p>
+
+    <div class="jr-cargent">
+      <div><b>${c.achat != null ? c.achat.toFixed(2) + " €" : "—"}</b><span>achat</span></div>
+      <div><b>${c.valeur != null ? c.valeur + " €" : "—"}</b><span>valeur estimée</span></div>
+      <div><b>${marge != null ? marge + " €" : "—"}</b><span>marge</span></div>
+    </div>
+
+    <label class="jr-lbl">Devenue</label>
+    <div class="jr-statuspick">
+      ${["Boîte mystère","Vente à l'unité"].map(d =>
+        `<button class="jr-badge ${c.destination===d?'jr-badge-s cur':'jr-badge-v'}" data-cdest="${d}">${d}</button>`).join("")}
+    </div>
+
+    <label class="jr-lbl">Note personnelle</label>
+    <textarea id="cNote" rows="2" placeholder="Remarques, provenance du lot…">${escapeHtml(c.note)}</textarea>
+    <button class="jr-detail-save" id="cSave">Enregistrer</button>
+    <button class="jr-detail-del" id="cDel">Supprimer cette carte</button>
+    <div id="cDelConfirm"></div>
+  </div>`;
+}
+
+function brancherCartes() {
+  const maj = () => { renderCartes(); };
+  const el = id => document.getElementById(id);
+
+  const s = el("cSearch");
+  if (s) s.addEventListener("input", ev => { cRecherche = ev.target.value; renderCartes(); el("cSearch").focus(); });
+  if (el("cClear")) el("cClear").addEventListener("click", () => { cRecherche = ""; maj(); });
+  if (el("cEtat")) el("cEtat").addEventListener("change", ev => { cEtatMin = parseInt(ev.target.value,10); maj(); });
+  if (el("cTri")) el("cTri").addEventListener("change", ev => { cTriChamp = ev.target.value; maj(); });
+  if (el("cPubToggle")) el("cPubToggle").addEventListener("click", () => { cPubOuvert = !cPubOuvert; maj(); });
+  if (el("cPubClear")) el("cPubClear").addEventListener("click", () => { cPublic.clear(); maj(); });
+
+
+  document.querySelectorAll("[data-pays]").forEach(b => b.addEventListener("click", () => {
+    const p = b.dataset.pays; cPublic.has(p) ? cPublic.delete(p) : cPublic.add(p); maj();
+  }));
+  document.querySelectorAll("[data-cprov]").forEach(b => b.addEventListener("click", () => {
+    cProvSel = b.dataset.cprov; cDetailId = null; cPublic.clear(); maj();
+  }));
+  document.querySelectorAll("[data-cfilt]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.cfilt; cFiltres.has(k) ? cFiltres.delete(k) : cFiltres.add(k); maj();
+  }));
+  if (el("cProvMore")) el("cProvMore").addEventListener("click", () => { cProvOuvert = true; maj(); });
+  if (el("cProvLess")) el("cProvLess").addEventListener("click", () => { cProvOuvert = false; maj(); });
+  document.querySelectorAll("[data-copen]").forEach(b => b.addEventListener("click", () => {
+    cDetailId = (cDetailId === b.dataset.copen) ? null : b.dataset.copen; maj();
+  }));
+  if (el("cClose")) el("cClose").addEventListener("click", () => { cDetailId = null; maj(); });
+
+  document.querySelectorAll("[data-panier]").forEach(b => b.addEventListener("click", () => {
+    basculerPanier(b.dataset.panier); maj();
+  }));
+  const c = cartes.find(x => x.id === cDetailId);
+  if (c) {
+    const bp = document.getElementById("cPanierBtn");
+    if (bp) bp.addEventListener("click", () => { basculerPanier("c:" + c.id); maj(); });
+  }
+  if (!c || !isAdmin) return;
+
+  document.querySelectorAll("[data-crm]").forEach(b => b.addEventListener("click", async () => {
+    c.pays.splice(parseInt(b.dataset.crm,10), 1); await persistCarte(c); maj();
+  }));
+  const ajouterPays = async () => {
+    const inp = el("cNewPays"); const v = (inp.value||"").trim();
+    if (!v) return;
+    if (!c.pays.includes(v)) c.pays.push(v);
+    await persistCarte(c); maj();
+  };
+  if (el("cAddPays")) el("cAddPays").addEventListener("click", ajouterPays);
+  if (el("cNewPays")) el("cNewPays").addEventListener("keydown", ev => { if (ev.key === "Enter") ajouterPays(); });
+  document.querySelectorAll("[data-cstat]").forEach(b => b.addEventListener("click", async () => {
+    const k = b.dataset.cstat;
+    c.statut = k;
+    c.venduLe = (k === "v") ? (c.venduLe || Date.now()) : null;
+    await persistCarte(c); maj();
+  }));
+  const pin = document.getElementById("cPhotoInput");
+  if (pin) pin.addEventListener("change", async () => {
+    const f = pin.files && pin.files[0];
+    if (!f) return;
+    const msg = document.getElementById("cPhotoMsg");
+    msg.style.color = "#8a8070"; msg.textContent = "Compression et envoi…";
+    try {
+      const blob = await compresserImage(f);
+      const nom = "carte-" + c.id + "-" + Date.now() + ".jpg";
+      const res = await fetch(SUPABASE_URL + "/storage/v1/object/photos/" + nom, {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + bearer(), "Content-Type": "image/jpeg", "x-upsert": "true" },
+        body: blob
+      });
+      if (!res.ok) throw new Error((await res.text()).slice(0,150));
+      const anc = c.photo; c.photo = nom;
+      await persistCarte(c);
+      if (anc) { try { await supprimerFichier(anc); } catch (e) {} }
+      maj();
+    } catch (err) { msg.style.color = "#a33"; msg.textContent = "✕ " + err.message; }
+  });
+  const pdel = document.getElementById("cPhotoDel");
+  if (pdel) pdel.addEventListener("click", async () => {
+    const anc = c.photo; c.photo = null; await persistCarte(c);
+    if (anc) { try { await supprimerFichier(anc); } catch (e) {} }
+    maj();
+  });
+  const bdel = document.getElementById("cDel");
+  if (bdel) bdel.addEventListener("click", () => {
+    const z = document.getElementById("cDelConfirm");
+    z.innerHTML = `<div class="jr-delconf">Supprimer définitivement cette carte ?
+      <button id="cDelYes">Oui, supprimer</button><button id="cDelNo">Annuler</button></div>`;
+    document.getElementById("cDelNo").addEventListener("click", () => { z.innerHTML = ""; });
+    document.getElementById("cDelYes").addEventListener("click", async () => {
+      const id = c.id;
+      cartes = cartes.filter(x => x.id !== id);
+      cDetailId = null;
+      if (cloudOk && isAdmin) { try { await rest("cartes?id=eq." + encodeURIComponent(id), { method: "DELETE" }); } catch (e) {} }
+      sauverCartesLocal(); maj();
+    });
+  });
+  document.querySelectorAll("[data-cdest]").forEach(b => b.addEventListener("click", async () => {
+    c.destination = (c.destination === b.dataset.cdest) ? "" : b.dataset.cdest;
+    await persistCarte(c); maj();
+  }));
+  if (el("cSave")) el("cSave").addEventListener("click", async () => {
+    c.note = el("cNote").value; await persistCarte(c); cDetailId = null; maj();
+  });
+
+  // suggestions de pays déjà utilisés
+  const zs = el("cSuggPays");
+  if (zs) {
+    const tous = {};
+    cartes.forEach(x => (x.pays||[]).forEach(p => { tous[p] = (tous[p]||0)+1; }));
+    const dispo = Object.keys(tous).filter(p => !c.pays.includes(p)).sort((a,b) => tous[b]-tous[a]);
+    zs.innerHTML = dispo.length ? `<span class="jr-sugg-lbl">Déjà utilisés</span>` +
+      dispo.map(p => `<button class="jr-suggtag" data-csugg="${escapeHtml(p)}">${escapeHtml(p)}</button>`).join("") : "";
+    zs.querySelectorAll("[data-csugg]").forEach(b => b.addEventListener("click", async () => {
+      if (!c.pays.includes(b.dataset.csugg)) c.pays.push(b.dataset.csugg);
+      await persistCarte(c); maj();
+    }));
+  }
+}
+
 function collName(id) {
   const c = collections.find(x => x.id === id);
   return c ? c.name : "?";
 }
 
 function escapeHtml(s) {
-  return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
 function ficheHtml(e) {
@@ -1760,7 +2571,7 @@ function ficheHtml(e) {
       ${e.title ? `<p class="jr-detail-titre ${e.guessed ? "jr-guessed" : ""}">${e.guessed ? "≈ " : ""}${escapeHtml(e.title)}</p>` : ""}
       ${(e.tags||[]).length ? `<div class="jr-tagwrap">${e.tags.slice().sort((a,b)=>(estMaster(b)?1:0)-(estMaster(a)?1:0)).map(t => `<span class="jr-tagpill ${estMaster(t)?"jr-tagpill-master":""}">${escapeHtml(libelleTag(t))}</span>`).join("")}</div>` : ""}
       ${(e.status === "d" || e.status === "s")
-        ? `<button class="jr-detail-panier ${dansPanier(e.id) ? "on" : ""}" id="jrDetailPanier">${dansPanier(e.id) ? "✓ Dans ma sélection" : "+ Ajouter à ma sélection"}</button>`
+        ? `<button class="jr-detail-panier ${dansPanier("j:"+e.id) ? "on" : ""}" id="jrDetailPanier">${dansPanier("j:"+e.id) ? "✓ Dans ma sélection" : "+ Ajouter à ma sélection"}</button>`
         : ""}
       ${lienGallica}
     </div>`;
