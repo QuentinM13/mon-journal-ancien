@@ -268,6 +268,12 @@
   .jr-badge-d { background: #e3f0dc; color: #3a6b2a; }
   .jr-badge-s { background: #e2e8f7; color: #33488f; }
   .jr-copen { cursor: pointer; }
+  .jr-pays-barre { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 12px; }
+  .jr-pays-lbl { width: 100%; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #8a8070; margin-bottom: 2px; }
+  .jr-paystag { font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid #2f4858; background: #fff; color: #2f4858; cursor: pointer; font-family: inherit; font-weight: 600; }
+  .jr-paystag.on { background: #2f4858; color: #fff; }
+  .jr-paystag span { opacity: .6; font-weight: 400; }
+  .jr-form-carte { margin: 12px 0 4px; }
   .jr-vbtn2 { font-size: 12px; padding: 6px 14px; border: none; background: #faf8f3; color: #8a8070; cursor: pointer; font-family: inherit; }
   .jr-vbtn2.on { background: #2b2620; color: #fff; }
   .jr-vignes { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 4px; }
@@ -311,7 +317,7 @@
     <button class="jr-ubtn" data-univ="cartes">🗺 Cartes</button>
   </div>
   <div class="jr-masthead">
-    <h1 id="jrTitre">Mon Journal Ancien</h1>
+    <h1 id="jrTitre">Mes journaux anciens</h1>
   </div>
   <div id="jrDisclaimer"></div>
   <div id="jrCartes"></div>
@@ -323,12 +329,12 @@
   </div>
   <div class="jr-stats" id="jrStats"></div>
   <div id="jrAlertZone"></div>
-  <div class="jr-search">
+  <div class="jr-search" id="jrSearchBar">
     <input id="jrSearch" type="text" placeholder="12/11, novembre, 1918, armistice..." />
     <button id="jrClear">Effacer</button>
   </div>
   <div class="jr-cloud" id="jrTagCloud"></div>
-  <div class="jr-viewbar">
+  <div class="jr-viewbar" id="jrViewBar">
     <div class="jr-viewtoggle">
       <button class="jr-vbtn" data-view="calendrier">Calendrier</button>
       <button class="jr-vbtn" data-view="dates">Dates</button>
@@ -900,6 +906,15 @@ let cFiltres = new Set(["d","s"]);
 let cEtatMin = 0;
 let cTriChamp = "num";
 let cVue = "liste";
+let provenancesSup = [];
+const PROV_KEY = "mja-prov-sup";
+function chargerProvSup() {
+  try { provenancesSup = JSON.parse(window.localStorage.getItem(PROV_KEY) || "[]"); }
+  catch (e) { provenancesSup = []; }
+}
+function sauverProvSup() {
+  try { window.localStorage.setItem(PROV_KEY, JSON.stringify(provenancesSup)); } catch (e) {}
+}
 let cPubOuvert = false;
 let cProvOuvert = false;
 let searchQuery = "";
@@ -1225,12 +1240,12 @@ function renderUnivers() {
   const zoneJ = ["jrTabs","jrStats","jrAlertZone","jrTagCloud","jrCount","jrCalendar","jrList","jrDisclaimer","jrColEdit"];
   const cartesOn = univers === "cartes";
   document.getElementById("jrCartes").style.display = cartesOn ? "block" : "none";
-  document.querySelector(".jr-viewbar").style.display = cartesOn ? "none" : "flex";
-  document.querySelector(".jr-search").style.display = cartesOn ? "none" : "flex";
+  document.getElementById("jrViewBar").style.display = cartesOn ? "none" : "flex";
+  document.getElementById("jrSearchBar").style.display = cartesOn ? "none" : "flex";
   document.querySelector(".jr-addbar").style.display = cartesOn ? "none" : "";
   document.querySelector(".jr-backup").style.display = cartesOn ? "none" : "";
   zoneJ.forEach(id => { const e = document.getElementById(id); if (e) e.style.display = cartesOn ? "none" : ""; });
-  document.getElementById("jrTitre").textContent = cartesOn ? "Mes Cartes Anciennes" : "Mon Journal Ancien";
+  document.getElementById("jrTitre").textContent = cartesOn ? "Mes cartes anciennes" : "Mes journaux anciens";
   document.querySelectorAll(".jr-ubtn").forEach(b => {
     b.className = "jr-ubtn" + (b.dataset.univ === univers ? " on" : "");
     b.onclick = async () => {
@@ -2150,7 +2165,8 @@ function carteFromRow(r) {
     achat: r.achat == null ? null : Number(r.achat),
     valeur: r.valeur == null ? null : Number(r.valeur),
     cote: r.cote || "", vendu: !!r.vendu, venduLe: r.vendu_le ? new Date(r.vendu_le).getTime() : null,
-    destination: r.destination || "", pays: r.pays || [], note: r.note || "", photo: r.photo || null };
+    destination: r.destination || "", pays: r.pays || [], note: r.note || "", photo: r.photo || null,
+    ajouteLe: r.ajoute_le ? new Date(r.ajoute_le).getTime() : null };
 }
 function carteToRow(c) {
   return { id: c.id, num: c.num, nom: c.nom, provenance: c.provenance || null,
@@ -2158,20 +2174,22 @@ function carteToRow(c) {
     etat_txt: c.etatTxt || null, etat_note: c.etatNote || null, statut: c.statut || "d",
     achat: c.achat, valeur: c.valeur, cote: c.cote || null, vendu: c.statut === "v",
     vendu_le: c.venduLe ? new Date(c.venduLe).toISOString() : null,
-    destination: c.destination || null, pays: c.pays || [], note: c.note || null, photo: c.photo || null };
+    destination: c.destination || null, pays: c.pays || [], note: c.note || null, photo: c.photo || null,
+    ajoute_le: c.ajouteLe ? new Date(c.ajouteLe).toISOString() : null };
 }
 function seedCartes() {
   return SEED_CARTES.map(a => ({
     id: "c" + a[0], num: a[0], nom: a[1] || "", provenance: a[2] || "", echelle: a[3] || "",
     sujet: a[4] || "", annee: a[5] || null, etatTxt: a[6] || "", etatNote: a[7] || null,
     achat: a[8] || null, valeur: a[9] || null, cote: a[10] || "",
-    statut: a[11] ? "v" : ((a[12]||"").indexOf("International") >= 0 ? "s" : "d"),
+    statut: a[11] ? "v" : (String(a[10]||"").toUpperCase().indexOf("S") === 0 || (a[12]||"").indexOf("International") >= 0 ? "s" : "d"),
     venduLe: null, destination: "", pays: a[12] ? a[12].split("|") : [], note: "", photo: null,
-    reservedUntil: null
+    ajouteLe: null, reservedUntil: null
   }));
 }
 async function chargerCartes() {
   if (cartesChargees) return;
+  chargerProvSup();
   try {
     const rows = await rest("cartes?select=*&order=num.asc&limit=5000");
     if (rows && rows.length) { cartes = rows.map(carteFromRow); cartesChargees = true; sauverCartesLocal(); return; }
@@ -2242,6 +2260,7 @@ function renderCartes() {
   // --- provenances : jouent le rôle des collections ---
   const provTous = {};
   cartes.forEach(c => { const p = c.provenance || "Sans provenance"; provTous[p] = (provTous[p]||0)+1; });
+  if (isAdmin) provenancesSup.forEach(p => { if (!(p in provTous)) provTous[p] = 0; });
   const provTri = Object.keys(provTous).sort((a,b) => provTous[b]-provTous[a] || a.localeCompare(b));
   const VIS = 5;
   let enAvant = provTri.slice(0, VIS), caches = provTri.slice(VIS);
@@ -2272,6 +2291,12 @@ function renderCartes() {
       ${provAff.map(p => `<button class="jr-tab ${cProvSel===p?'active':''}" data-cprov="${escapeHtml(p)}" style="${cProvSel===p?`background:#2f4858;color:#fff;border-color:#2f4858`:``}">${escapeHtml(p)} <span class="jr-tab-n">${provTous[p]}</span></button>`).join("")}
       ${caches.length && !cProvOuvert ? `<button class="jr-tab-plus" id="cProvMore">+${caches.length} autres ▾</button>` : ""}
       ${cProvOuvert ? `<button class="jr-tab-plus" id="cProvLess">Réduire ▴</button>` : ""}
+      ${isAdmin ? `<button class="jr-tab-add" id="cProvNew">+ Nouvelle collection</button>` : ""}
+    </div>
+    <div class="jr-newcol" id="cNewProvForm" style="display:none;">
+      <input type="text" id="cNewProvInput" placeholder="Nom de la collection, ex. Atlas Vidal-Lablache">
+      <button id="cNewProvSave" class="jr-btn">Créer</button>
+      <button id="cNewProvCancel" class="jr-btn jr-btn-sec">Annuler</button>
     </div>
 
     <div class="jr-stats">
@@ -2284,15 +2309,10 @@ function renderCartes() {
       <button id="cClear">Effacer</button>
     </div>
 
-    <div class="jr-cloud">
-      <button class="jr-tagtoggle ${cPublic.size?'on':''}" id="cPubToggle">
-        <span>${cPublic.size ? "Public visé · " + cPublic.size + " sélectionné" + (cPublic.size>1?"s":"") : "Public visé (" + paysTri.length + ")"}</span>
-        <span class="jr-caret">${cPubOuvert ? '▲' : '▼'}</span>
-      </button>
-      <div class="jr-tagmenu" style="display:${cPubOuvert?'flex':'none'};">
-        ${paysTri.map(p => `<button class="jr-cloudtag ${cPublic.has(p)?'on':''}" data-pays="${escapeHtml(p)}">${escapeHtml(p)} <span>${paysTous[p]}</span></button>`).join("")}
-        ${cPublic.size ? `<button class="jr-clearTags" id="cPubClear">Tout désélectionner</button>` : ""}
-      </div>
+    <div class="jr-pays-barre">
+      <span class="jr-pays-lbl">Pays représentés</span>
+      ${paysTri.map(p => `<button class="jr-paystag ${cPublic.has(p)?'on':''}" data-pays="${escapeHtml(p)}">${escapeHtml(p)} <span>${paysTous[p]}</span></button>`).join("")}
+      ${cPublic.size ? `<button class="jr-clearTags" id="cPubClear">Tout afficher</button>` : ""}
     </div>
 
     <div class="jr-cfiltres">
@@ -2322,6 +2342,7 @@ function renderCartes() {
     </div>
 
     <div class="jr-count">${cVue==='stats' ? "" : `${liste.length} carte${liste.length!==1?'s':''}${isAdmin ? ` · ${coutStock.toFixed(2)} € d'achat · ${valStock} € estimés` : ""}`}</div>
+    ${isAdmin && cVue !== "stats" ? `<button class="jr-addbtn" id="cAddCarte">+ Ajouter une carte${cProvSel ? " dans « " + escapeHtml(cProvSel) + " »" : ""}</button>` : ""}
     <div id="cListe">${
       cVue === "stats" ? statsCartes()
       : cVue === "photos"
@@ -2337,15 +2358,10 @@ function renderCartes() {
 function statsCartes() {
   const tous = cartes;
   const dispo = tous.filter(c => c.statut === "d" || c.statut === "s");
-  const vendues = tous.filter(c => c.statut === "v");
   const somme = (arr, f) => arr.reduce((s,x) => s + (f(x)||0), 0);
-
   const investi = somme(tous, c => c.achat);
-  const coutDispo = somme(dispo, c => c.achat);
-  const valDispo = somme(dispo, c => c.valeur);
-  const coutVendu = somme(vendues, c => c.achat);
-  const valVendu = somme(vendues, c => c.valeur);
-  const moyen = tous.length ? investi / tous.filter(c => c.achat != null).length : 0;
+  const avecPrix = tous.filter(c => c.achat != null);
+  const moyen = avecPrix.length ? investi / avecPrix.length : 0;
 
   const barres = (obj, n) => {
     const arr = Object.entries(obj).sort((a,b) => b[1]-a[1]).slice(0, n||10);
@@ -2357,56 +2373,71 @@ function statsCartes() {
       <span class="jr-bar-v">${v}</span></div>`).join("");
   };
 
+  // évolution du coût moyen d'achat, par mois d'entrée en stock
+  const parMois = {};
+  avecPrix.forEach(c => {
+    const k = c.ajouteLe ? new Date(c.ajouteLe).toISOString().slice(0,7) : "avant le suivi";
+    (parMois[k] = parMois[k] || []).push(c.achat);
+  });
+  const moisTries = Object.keys(parMois).sort((a,b) => a === "avant le suivi" ? -1 : b === "avant le suivi" ? 1 : a.localeCompare(b));
+  const moyennes = moisTries.map(k => ({ k: k, n: parMois[k].length,
+    m: parMois[k].reduce((s,x)=>s+x,0) / parMois[k].length }));
+  const maxM = Math.max(0.01, ...moyennes.map(x => x.m));
+  const nomMois = k => {
+    if (k === "avant le suivi") return "avant";
+    const [a,m] = k.split("-");
+    return MOIS[parseInt(m,10)-1].slice(0,4) + " " + a.slice(2);
+  };
+
   const parPays = {}; dispo.forEach(c => (c.pays||[]).forEach(p => { parPays[p] = (parPays[p]||0)+1; }));
   const parProv = {}; dispo.forEach(c => { const k = c.provenance || "Sans provenance"; parProv[k] = (parProv[k]||0)+1; });
-  const parDest = {}; vendues.forEach(c => { const k = c.destination || "Non précisé"; parDest[k] = (parDest[k]||0)+1; });
-  const parEtat = {};
-  dispo.forEach(c => { const k = c.etatNote ? c.etatNote + "/10" : "non noté"; parEtat[k] = (parEtat[k]||0)+1; });
+  const parEtat = {}; dispo.forEach(c => { const k = c.etatNote ? c.etatNote + "/10" : "non noté"; parEtat[k] = (parEtat[k]||0)+1; });
 
   const sansPays = dispo.filter(c => !(c.pays||[]).length).length;
   const sansPhoto = dispo.filter(c => !c.photo).length;
   const sansEtat = dispo.filter(c => !c.etatNote).length;
+  const pc = n => Math.round(n / Math.max(1, dispo.length) * 100);
 
   return `<div class="jr-stats-panel">
     <div class="jr-kpi">
       <div><b>${tous.length}</b><span>en base</span></div>
       <div><b>${dispo.length}</b><span>disponibles</span></div>
-      <div><b>${vendues.length}</b><span>vendues</span></div>
+      <div><b>${tous.filter(c=>c.statut==="v").length}</b><span>vendues</span></div>
       <div><b>${tous.filter(c=>c.statut==="r").length}</b><span>réservées</span></div>
     </div>
 
     <h3>Argent</h3>
-    <p class="jr-stat-sub">Le prix d'achat sert à chiffrer le contenu de tes boîtes mystères. La valeur estimée est indicative.</p>
     <div class="jr-kpi jr-kpi-clair">
       <div><b>${investi.toFixed(2)} €</b><span>investi au total</span></div>
-      <div><b>${coutDispo.toFixed(2)} €</b><span>coût du stock restant</span></div>
-      <div><b>${valDispo} €</b><span>valeur du stock</span></div>
+      <div><b>${somme(dispo, c => c.achat).toFixed(2)} €</b><span>coût du stock restant</span></div>
+      <div><b>${somme(dispo, c => c.valeur)} €</b><span>valeur théorique</span></div>
       <div><b>${moyen.toFixed(2)} €</b><span>coût moyen / carte</span></div>
     </div>
-    <div class="jr-kpi jr-kpi-clair" style="margin-top:8px">
-      <div><b>${coutVendu.toFixed(2)} €</b><span>coût des vendues</span></div>
-      <div><b>${valVendu} €</b><span>valeur des vendues</span></div>
-      <div><b>${(valVendu-coutVendu).toFixed(2)} €</b><span>marge estimée</span></div>
-      <div><b>${vendues.length ? (coutVendu/vendues.length).toFixed(2) : "0.00"} €</b><span>coût moyen d'une carte partie</span></div>
-    </div>
+
+    <h3>Évolution du coût moyen d'achat</h3>
+    <p class="jr-stat-sub">Par mois d'entrée en stock. Sert à savoir si tes lots reviennent plus ou moins cher qu'avant, et à chiffrer une boîte mystère.</p>
+    ${moyennes.length ? `<div class="jr-mois">${moyennes.map(x => `
+      <div class="jr-mois-col" title="${x.n} cartes à ${x.m.toFixed(2)} € en moyenne">
+        <span class="jr-mois-bar" style="height:${Math.round(x.m/maxM*54)+2}px"></span>
+        <span class="jr-mois-v">${x.m.toFixed(1)}</span>
+        <span class="jr-mois-l">${nomMois(x.k)}</span>
+      </div>`).join("")}</div>` : `<p class="jr-stat-vide">Aucune donnée.</p>`}
+    ${parMois["avant le suivi"] ? `<p class="jr-stat-note">${parMois["avant le suivi"].length} cartes importées de ton tableau n'ont pas de date d'entrée : elles sont regroupées sous « avant ». Les cartes que tu ajoutes maintenant seront datées automatiquement.</p>` : ""}
 
     <h3>Ce que j'ai pour chaque pays</h3>
-    <p class="jr-stat-sub">Sur le stock disponible. C'est le tableau à regarder avant de composer une boîte pour un client étranger.</p>
+    <p class="jr-stat-sub">Sur le stock disponible. Le tableau à ouvrir avant de composer une boîte pour un client étranger.</p>
     ${barres(parPays, 12)}
 
-    <h3>Par provenance</h3>
+    <h3>Par collection</h3>
     ${barres(parProv, 8)}
 
     <h3>État du stock disponible</h3>
     ${barres(parEtat, 10)}
 
-    <h3>Destination des cartes parties</h3>
-    ${barres(parDest, 5)}
-
     <h3>À compléter</h3>
-    <div class="jr-bar-l"><span class="jr-bar-n">Sans public visé</span><span class="jr-bar-t"><span class="jr-bar-f" style="width:${Math.round(sansPays/Math.max(1,dispo.length)*100)}%"></span></span><span class="jr-bar-v">${sansPays}</span></div>
-    <div class="jr-bar-l"><span class="jr-bar-n">Sans photo</span><span class="jr-bar-t"><span class="jr-bar-f" style="width:${Math.round(sansPhoto/Math.max(1,dispo.length)*100)}%"></span></span><span class="jr-bar-v">${sansPhoto}</span></div>
-    <div class="jr-bar-l"><span class="jr-bar-n">Sans note d'état</span><span class="jr-bar-t"><span class="jr-bar-f" style="width:${Math.round(sansEtat/Math.max(1,dispo.length)*100)}%"></span></span><span class="jr-bar-v">${sansEtat}</span></div>
+    <div class="jr-bar-l"><span class="jr-bar-n">Sans pays</span><span class="jr-bar-t"><span class="jr-bar-f" style="width:${pc(sansPays)}%"></span></span><span class="jr-bar-v">${sansPays}</span></div>
+    <div class="jr-bar-l"><span class="jr-bar-n">Sans photo</span><span class="jr-bar-t"><span class="jr-bar-f" style="width:${pc(sansPhoto)}%"></span></span><span class="jr-bar-v">${sansPhoto}</span></div>
+    <div class="jr-bar-l"><span class="jr-bar-n">Sans note d'état</span><span class="jr-bar-t"><span class="jr-bar-f" style="width:${pc(sansEtat)}%"></span></span><span class="jr-bar-v">${sansEtat}</span></div>
   </div>`;
 }
 
@@ -2415,11 +2446,12 @@ function ligneCarte(c) {
   const LBL = { d:"Disponible", s:"Spéciale", v:"Vendue", r:"Réservée" };
   const pc = provCouleur(c.provenance);
   const e = couleurEtat(c.etatNote);
-  const infos = [c.annee, c.echelle, c.sujet].filter(Boolean);
+  const bas = [c.echelle, c.sujet].filter(Boolean);
   return `<div class="jr-row" data-cid="${c.id}">
     <div class="jr-row-top">
       <div class="jr-row-open jr-row-datewrap" data-copen="${c.id}">
         <span class="jr-cnom">${escapeHtml(c.nom)}</span>
+        ${c.annee ? `<span class="jr-row-year">${c.annee}</span>` : ""}
       </div>
       ${isAdmin
         ? `<button class="jr-badge jr-badge-${st} jr-badge-btn" data-cstatline="${c.id}">${LBL[st]}</button>`
@@ -2431,11 +2463,11 @@ function ligneCarte(c) {
           ? `<button class="jr-add-panier ${dansPanier("c:"+c.id)?"on":""}" data-panier="c:${c.id}" aria-label="Ajouter à ma sélection">${dansPanier("c:"+c.id)?"✓":"+"}</button>` : ""}
       </div>
     </div>
-    ${(infos.length || (c.pays||[]).length) ? `<div class="jr-row-open jr-row-bas" data-copen="${c.id}">
-      ${infos.map(x => `<span class="jr-cinfo">${escapeHtml(x)}</span>`).join("")}
-      ${isAdmin ? (c.pays||[]).slice(0,4).map(p => `<span class="jr-rowtag">${escapeHtml(p)}</span>`).join("") : ""}
-      ${isAdmin && (c.pays||[]).length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${c.pays.length-4}</span>` : ""}
-      ${isAdmin && !(c.pays||[]).length ? `<span class="jr-capreciser">public à préciser</span>` : ""}
+    ${(bas.length || (c.pays||[]).length) ? `<div class="jr-row-open jr-row-bas" data-copen="${c.id}">
+      ${bas.map(x => `<span class="jr-cinfo">${escapeHtml(x)}</span>`).join("")}
+      ${(c.pays||[]).slice(0,4).map(p => `<span class="jr-rowtag">${escapeHtml(p)}</span>`).join("")}
+      ${(c.pays||[]).length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${c.pays.length-4}</span>` : ""}
+      ${isAdmin && !(c.pays||[]).length ? `<span class="jr-capreciser">pays à préciser</span>` : ""}
     </div>` : ""}
   </div>`;
 }
@@ -2459,78 +2491,92 @@ function ficheCarte(c) {
   const e = couleurEtat(c.etatNote);
   const st = c.statut || "d";
   const LBL = { d:"Disponible", s:"Spéciale", v:"Vendue", r:"Réservée" };
-  const marge = (c.valeur != null && c.achat != null) ? (c.valeur - c.achat).toFixed(2) : null;
   const photo = c.photo ? `<img class="jr-photo" src="${photoUrl(c.photo)}" alt="Carte ${escapeHtml(c.nom)}" loading="lazy">` : "";
-
-  const entete = `
-    <div class="jr-detail-head">
-      <div>
-        <div class="jr-detail-date">n°${c.num} · ${escapeHtml(c.nom)}</div>
-        <div class="jr-detail-coll">${[c.annee, c.provenance, c.echelle, c.sujet].filter(Boolean).map(escapeHtml).join(" · ") || "—"}</div>
-      </div>
-      <button id="cClose" aria-label="Fermer">✕</button>
-    </div>
-    ${photo}
-    <div class="jr-cfiche-etat">
-      <span class="jr-badge jr-badge-${st}">${LBL[st]}</span>
-      <span class="jr-cetat jr-cetat-gros" style="background:${e.bg};color:${e.fg}">${c.etatNote ? c.etatNote + "/10" : "état non noté"}</span>
-      ${c.etatTxt ? `<span class="jr-cetat-txt">${escapeHtml(c.etatTxt)}</span>` : ""}
-      ${c.cote ? `<span class="jr-ccote">cote ${escapeHtml(c.cote)}</span>` : ""}
-    </div>`;
 
   if (!isAdmin) {
     return `<div class="jr-detail" id="cDetail">
-      ${entete}
-      <label class="jr-lbl">Public visé</label>
-      <div class="jr-tagwrap">
-        ${(c.pays||[]).map(p => `<span class="jr-tagpill">${escapeHtml(p)}</span>`).join("") || `<span class="jr-notags">Public à préciser</span>`}
+      <div class="jr-detail-head">
+        <div>
+          <div class="jr-detail-date">${escapeHtml(c.nom)}${c.annee ? ` <span class="jr-row-year">${c.annee}</span>` : ""}</div>
+          <div class="jr-detail-coll">${[c.provenance, c.echelle, c.sujet].filter(Boolean).map(escapeHtml).join(" · ") || "—"}</div>
+        </div>
+        <button id="cClose" aria-label="Fermer">✕</button>
       </div>
+      ${photo}
+      <div class="jr-cfiche-etat">
+        <span class="jr-badge jr-badge-${st}">${LBL[st]}</span>
+      </div>
+      ${(c.pays||[]).length ? `<label class="jr-lbl">Pays représentés</label>
+        <div class="jr-tagwrap">${c.pays.map(p => `<span class="jr-tagpill">${escapeHtml(p)}</span>`).join("")}</div>` : ""}
       ${(st === "d" || st === "s")
         ? `<button class="jr-detail-panier ${dansPanier("c:"+c.id)?"on":""}" id="cPanierBtn">${dansPanier("c:"+c.id)?"✓ Dans ma sélection":"+ Ajouter à ma sélection"}</button>` : ""}
     </div>`;
   }
 
+  const provs = [...new Set(cartes.map(x => x.provenance).filter(Boolean).concat(provenancesSup))].sort();
+  const marge = (c.valeur != null && c.achat != null) ? (c.valeur - c.achat).toFixed(2) : "—";
+
   return `<div class="jr-detail" id="cDetail">
-    ${entete}
+    <div class="jr-detail-head">
+      <div><div class="jr-detail-date">Fiche n°${c.num || "—"}</div></div>
+      <button id="cClose" aria-label="Fermer">✕</button>
+    </div>
+
+    ${photo}
+    <div class="jr-photo-actions">
+      <label class="jr-photo-btn">${c.photo ? "Remplacer la photo" : "Ajouter une photo"}
+        <input type="file" id="cPhotoInput" accept="image/*" style="display:none"></label>
+      ${c.photo ? `<button class="jr-photo-del" id="cPhotoDel">Retirer</button>` : ""}
+    </div>
+    <p class="jr-photo-msg" id="cPhotoMsg"></p>
 
     <label class="jr-lbl">Statut</label>
     <div class="jr-statuspick">
       ${["d","s","v","r"].map(k => `<button class="jr-badge jr-badge-${k} ${st===k?'cur':''}" data-cstat="${k}">${LBL[k]}</button>`).join("")}
     </div>
 
-    <label class="jr-lbl">Public visé</label>
+    <div class="jr-form jr-form-carte">
+      <div class="jr-champ jr-champ-large"><label for="cfNom">Nom de la carte</label>
+        <input type="text" id="cfNom" value="${escapeHtml(c.nom)}"></div>
+      <div class="jr-champ"><label for="cfAnnee">Année</label>
+        <input type="number" id="cfAnnee" inputmode="numeric" value="${c.annee || ""}" placeholder="1913"></div>
+      <div class="jr-champ"><label for="cfEchelle">Échelle</label>
+        <input type="text" id="cfEchelle" value="${escapeHtml(c.echelle)}" placeholder="1/50 000"></div>
+      <div class="jr-champ"><label for="cfSujet">Sujet</label>
+        <input type="text" id="cfSujet" value="${escapeHtml(c.sujet)}" placeholder="Ville, Région…"></div>
+      <div class="jr-champ jr-champ-large"><label for="cfProv">Collection / provenance</label>
+        <select id="cfProv">
+          <option value="">— aucune —</option>
+          ${provs.map(pv => `<option value="${escapeHtml(pv)}"${c.provenance===pv?' selected':''}>${escapeHtml(pv)}</option>`).join("")}
+        </select></div>
+      <div class="jr-champ"><label for="cfEtat">État sur 10</label>
+        <input type="number" id="cfEtat" min="1" max="10" value="${c.etatNote || ""}"></div>
+      <div class="jr-champ"><label for="cfAchat">Prix d'achat €</label>
+        <input type="number" id="cfAchat" step="0.01" value="${c.achat != null ? c.achat : ""}"></div>
+      <div class="jr-champ"><label for="cfValeur">Valeur estimée €</label>
+        <input type="number" id="cfValeur" step="1" value="${c.valeur != null ? c.valeur : ""}"></div>
+      <div class="jr-champ jr-champ-large"><label for="cfEtatTxt">Description de l'état</label>
+        <input type="text" id="cfEtatTxt" value="${escapeHtml(c.etatTxt)}" placeholder="bord abîmé, plié…"></div>
+    </div>
+    <div class="jr-cargent">
+      <div><b>${c.achat != null ? c.achat.toFixed(2) + " €" : "—"}</b><span>achat</span></div>
+      <div><b>${c.valeur != null ? c.valeur + " €" : "—"}</b><span>valeur</span></div>
+      <div><b id="cMarge">${marge === "—" ? "—" : marge + " €"}</b><span>marge</span></div>
+    </div>
+
+    <label class="jr-lbl">Pays représentés</label>
     <div class="jr-tagwrap">
-      ${(c.pays||[]).map((p,i) => `<span class="jr-tagpill">${escapeHtml(p)}<button data-crm="${i}" aria-label="Retirer">×</button></span>`).join("") || `<span class="jr-notags">Public à préciser</span>`}
+      ${(c.pays||[]).map((p,i) => `<span class="jr-tagpill">${escapeHtml(p)}<button data-crm="${i}" aria-label="Retirer">×</button></span>`).join("") || `<span class="jr-notags">Aucun pays</span>`}
     </div>
     <div class="jr-tagadd">
-      <input type="text" id="cNewPays" autocomplete="off" placeholder="Ajouter un pays ou « International »" />
+      <input type="text" id="cNewPays" autocomplete="off" placeholder="Ajouter un pays ou « International »">
       <button id="cAddPays" class="jr-btn">Ajouter</button>
     </div>
     <div class="jr-sugg" id="cSuggPays"></div>
 
-    <label class="jr-lbl">Photo de la carte</label>
-    <div class="jr-photo-actions">
-      <label class="jr-photo-btn">${c.photo ? "Remplacer" : "Ajouter une photo"}
-        <input type="file" id="cPhotoInput" accept="image/*" style="display:none">
-      </label>
-      ${c.photo ? `<button class="jr-photo-del" id="cPhotoDel">Retirer</button>` : ""}
-    </div>
-    <p class="jr-photo-msg" id="cPhotoMsg"></p>
-
-    <div class="jr-cargent">
-      <div><b>${c.achat != null ? c.achat.toFixed(2) + " €" : "—"}</b><span>achat</span></div>
-      <div><b>${c.valeur != null ? c.valeur + " €" : "—"}</b><span>valeur estimée</span></div>
-      <div><b>${marge != null ? marge + " €" : "—"}</b><span>marge</span></div>
-    </div>
-
-    <label class="jr-lbl">Devenue</label>
-    <div class="jr-statuspick">
-      ${["Boîte mystère","Vente à l'unité"].map(d =>
-        `<button class="jr-badge ${c.destination===d?'jr-badge-s cur':'jr-badge-v'}" data-cdest="${d}">${d}</button>`).join("")}
-    </div>
-
     <label class="jr-lbl">Note personnelle</label>
     <textarea id="cNote" rows="2" placeholder="Remarques, provenance du lot…">${escapeHtml(c.note)}</textarea>
+
     <button class="jr-detail-save" id="cSave">Enregistrer</button>
     <button class="jr-detail-del" id="cDel">Supprimer cette carte</button>
     <div id="cDelConfirm"></div>
@@ -2546,7 +2592,6 @@ function brancherCartes() {
   if (el("cClear")) el("cClear").addEventListener("click", () => { cRecherche = ""; maj(); });
   if (el("cEtat")) el("cEtat").addEventListener("change", ev => { cEtatMin = parseInt(ev.target.value,10); maj(); });
   if (el("cTri")) el("cTri").addEventListener("change", ev => { cTriChamp = ev.target.value; maj(); });
-  if (el("cPubToggle")) el("cPubToggle").addEventListener("click", () => { cPubOuvert = !cPubOuvert; maj(); });
   if (el("cPubClear")) el("cPubClear").addEventListener("click", () => { cPublic.clear(); maj(); });
 
 
@@ -2556,6 +2601,27 @@ function brancherCartes() {
   document.querySelectorAll("[data-cprov]").forEach(b => b.addEventListener("click", () => {
     cProvSel = b.dataset.cprov; cDetailId = null; cPublic.clear(); maj();
   }));
+  if (el("cProvNew")) el("cProvNew").addEventListener("click", () => {
+    const f = el("cNewProvForm"); f.style.display = "flex"; el("cNewProvInput").focus();
+  });
+  if (el("cNewProvCancel")) el("cNewProvCancel").addEventListener("click", () => { el("cNewProvForm").style.display = "none"; });
+  if (el("cNewProvSave")) el("cNewProvSave").addEventListener("click", () => {
+    const v = (el("cNewProvInput").value||"").trim();
+    if (!v) return;
+    if (!provenancesSup.includes(v)) provenancesSup.push(v);
+    sauverProvSup(); cProvSel = v; maj();
+  });
+  if (el("cAddCarte")) el("cAddCarte").addEventListener("click", async () => {
+    const maxNum = cartes.reduce((m,x) => Math.max(m, x.num||0), 0);
+    const nouvelle = { id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      num: maxNum + 1, nom: "Nouvelle carte", provenance: cProvSel === "Sans provenance" ? "" : cProvSel,
+      echelle: "", sujet: "", annee: null, etatTxt: "", etatNote: null, statut: "d",
+      achat: null, valeur: null, cote: "", venduLe: null, destination: "",
+      pays: [], note: "", photo: null, ajouteLe: Date.now() };
+    cartes.push(nouvelle);
+    await persistCarte(nouvelle);
+    cVue = "liste"; cFiltres = new Set(["d","s"]); cDetailId = nouvelle.id; maj();
+  });
   document.querySelectorAll("[data-cvue]").forEach(b => b.addEventListener("click", () => {
     cVue = b.dataset.cvue; cDetailId = null; maj();
   }));
@@ -2644,8 +2710,22 @@ function brancherCartes() {
     c.destination = (c.destination === b.dataset.cdest) ? "" : b.dataset.cdest;
     await persistCarte(c); maj();
   }));
+  const nb = (id) => { const v = (el(id).value||"").trim(); return v === "" ? null : Number(v); };
+  ["cfAchat","cfValeur"].forEach(id => { const f = el(id); if (f) f.addEventListener("input", () => {
+    const a = nb("cfAchat"), v = nb("cfValeur");
+    el("cMarge").textContent = (a != null && v != null) ? (v - a).toFixed(2) + " €" : "—";
+  }); });
   if (el("cSave")) el("cSave").addEventListener("click", async () => {
-    c.note = el("cNote").value; await persistCarte(c); cDetailId = null; maj();
+    c.nom = (el("cfNom").value||"").trim() || c.nom;
+    c.annee = nb("cfAnnee");
+    c.echelle = (el("cfEchelle").value||"").trim();
+    c.sujet = (el("cfSujet").value||"").trim();
+    c.provenance = el("cfProv").value;
+    const n = nb("cfEtat"); c.etatNote = n ? Math.max(1, Math.min(10, Math.round(n))) : null;
+    c.achat = nb("cfAchat"); c.valeur = nb("cfValeur");
+    c.etatTxt = (el("cfEtatTxt").value||"").trim();
+    c.note = el("cNote").value;
+    await persistCarte(c); cDetailId = null; maj();
   });
 
   // suggestions de pays déjà utilisés
