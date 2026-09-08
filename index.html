@@ -274,6 +274,14 @@
   .jr-paystag.on { background: #2f4858; color: #fff; }
   .jr-paystag span { opacity: .6; font-weight: 400; }
   .jr-form-carte { margin: 12px 0 4px; }
+  .jr-annees { display: grid; grid-template-columns: repeat(auto-fill, minmax(94px, 1fr)); gap: 7px; }
+  .jr-anbloc { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .jr-an-n { font-size: 14px; font-weight: 700; }
+  .jr-an-c { font-size: 10px; opacity: .75; }
+  .jr-paysbloc .jr-an-n { font-size: 12px; text-align: center; line-height: 1.2; }
+  .jr-vign-fiche { grid-column: 1 / -1; }
+  .jr-filtre-actif { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; padding: 6px 12px; border-radius: 999px; background: #2b2620; color: #fff; margin-bottom: 10px; }
+  .jr-filtre-actif button { background: none; border: none; color: #c9c0aa; cursor: pointer; font-size: 13px; }
   .jr-vbtn2 { font-size: 12px; padding: 6px 14px; border: none; background: #faf8f3; color: #8a8070; cursor: pointer; font-family: inherit; }
   .jr-vbtn2.on { background: #2b2620; color: #fff; }
   .jr-vignes { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 4px; }
@@ -317,7 +325,7 @@
     <button class="jr-ubtn" data-univ="cartes">🗺 Cartes</button>
   </div>
   <div class="jr-masthead">
-    <h1 id="jrTitre">Mes journaux anciens</h1>
+    <h1 id="jrTitre">Journaux anciens</h1>
   </div>
   <div id="jrDisclaimer"></div>
   <div id="jrCartes"></div>
@@ -905,7 +913,8 @@ let cProvSel = "";
 let cFiltres = new Set(["d","s"]);
 let cEtatMin = 0;
 let cTriChamp = "num";
-let cVue = "liste";
+let cVue = "photos";
+let cAnnee = "";
 let provenancesSup = [];
 const PROV_KEY = "mja-prov-sup";
 function chargerProvSup() {
@@ -1245,7 +1254,7 @@ function renderUnivers() {
   document.querySelector(".jr-addbar").style.display = cartesOn ? "none" : "";
   document.querySelector(".jr-backup").style.display = cartesOn ? "none" : "";
   zoneJ.forEach(id => { const e = document.getElementById(id); if (e) e.style.display = cartesOn ? "none" : ""; });
-  document.getElementById("jrTitre").textContent = cartesOn ? "Mes cartes anciennes" : "Mes journaux anciens";
+  document.getElementById("jrTitre").textContent = cartesOn ? "Cartes anciennes" : "Journaux anciens";
   document.querySelectorAll(".jr-ubtn").forEach(b => {
     b.className = "jr-ubtn" + (b.dataset.univ === univers ? " on" : "");
     b.onclick = async () => {
@@ -1330,7 +1339,11 @@ function renderDisclaimer() {
 
 function renderTabs() {
   const compte = {};
-  entries.forEach(e => { compte[e.collectionId] = (compte[e.collectionId]||0) + 1; });
+  entries.forEach(e => {
+    if (e.status !== "d" && e.status !== "s") return;
+    compte[e.collectionId] = (compte[e.collectionId]||0) + 1;
+  });
+  const totalDispo = entries.filter(e => e.status === "d" || e.status === "s").length;
   // les collections les mieux fournies d'abord ; la couleur reste liée à la collection
   const triees = collections.slice().sort((a,b) => (compte[b.id]||0) - (compte[a.id]||0));
 
@@ -1352,7 +1365,7 @@ function renderTabs() {
   };
 
   document.getElementById("jrTabs").innerHTML =
-    `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes <span class="jr-tab-n">${entries.length}</span></button>`
+    `<button class="jr-tab ${activeCollectionId==='__all'?'active':''}" data-col="__all">Toutes <span class="jr-tab-n">${totalDispo}</span></button>`
     + aAfficher.map(btnColl).join("")
     + (caches.length && !tabsOpen ? `<button class="jr-tab-plus" id="jrTabsMore">+${caches.length} autres ▾</button>` : "")
     + (tabsOpen ? `<button class="jr-tab-plus" id="jrTabsLess">Réduire ▴</button>` : "")
@@ -2230,6 +2243,7 @@ function cartesFiltrees() {
   return cartes.filter(c => {
     if (cFiltres.size && !cFiltres.has(c.statut || "d")) return false;
     if (cEtatMin && (!c.etatNote || c.etatNote < cEtatMin)) return false;
+    if (cAnnee) { const k = c.annee || "Sans date"; if (String(k) !== cAnnee) return false; }
     if (cPublic.size && !(c.pays || []).some(p => cPublic.has(p))) return false;
     if (cProvSel && (c.provenance || "Sans provenance") !== cProvSel) return false;
     if (q) {
@@ -2259,7 +2273,10 @@ function renderCartes() {
 
   // --- provenances : jouent le rôle des collections ---
   const provTous = {};
-  cartes.forEach(c => { const p = c.provenance || "Sans provenance"; provTous[p] = (provTous[p]||0)+1; });
+  cartes.forEach(c => {
+    if (c.statut !== "d" && c.statut !== "s") return;
+    const p = c.provenance || "Sans provenance"; provTous[p] = (provTous[p]||0)+1;
+  });
   if (isAdmin) provenancesSup.forEach(p => { if (!(p in provTous)) provTous[p] = 0; });
   const provTri = Object.keys(provTous).sort((a,b) => provTous[b]-provTous[a] || a.localeCompare(b));
   const VIS = 5;
@@ -2287,8 +2304,8 @@ function renderCartes() {
 
   zone.innerHTML = `
     <div class="jr-tabs">
-      <button class="jr-tab ${!cProvSel?'active':''}" data-cprov="">Toutes <span class="jr-tab-n">${cartes.length}</span></button>
-      ${provAff.map(p => `<button class="jr-tab ${cProvSel===p?'active':''}" data-cprov="${escapeHtml(p)}" style="${cProvSel===p?`background:#2f4858;color:#fff;border-color:#2f4858`:``}">${escapeHtml(p)} <span class="jr-tab-n">${provTous[p]}</span></button>`).join("")}
+      <button class="jr-tab ${!cProvSel?'active':''}" data-cprov="">Toutes <span class="jr-tab-n">${cartes.filter(c=>c.statut==="d"||c.statut==="s").length}</span></button>
+      ${provAff.map(p => `<button class="jr-tab ${cProvSel===p?'active':''}" data-cprov="${escapeHtml(p)}" style="${cProvSel===p?`background:${provCouleur(p).bg};color:${provCouleur(p).fg};border-color:${provCouleur(p).bg}`:``}">${escapeHtml(p)} <span class="jr-tab-n">${provTous[p]}</span></button>`).join("")}
       ${caches.length && !cProvOuvert ? `<button class="jr-tab-plus" id="cProvMore">+${caches.length} autres ▾</button>` : ""}
       ${cProvOuvert ? `<button class="jr-tab-plus" id="cProvLess">Réduire ▴</button>` : ""}
       ${isAdmin ? `<button class="jr-tab-add" id="cProvNew">+ Nouvelle collection</button>` : ""}
@@ -2309,6 +2326,7 @@ function renderCartes() {
       <button id="cClear">Effacer</button>
     </div>
 
+    ${cAnnee ? `<div class="jr-filtre-actif">Année ${escapeHtml(cAnnee)} <button id="cAnClear">✕</button></div>` : ""}
     <div class="jr-pays-barre">
       <span class="jr-pays-lbl">Pays représentés</span>
       ${paysTri.map(p => `<button class="jr-paystag ${cPublic.has(p)?'on':''}" data-pays="${escapeHtml(p)}">${escapeHtml(p)} <span>${paysTous[p]}</span></button>`).join("")}
@@ -2336,6 +2354,8 @@ function renderCartes() {
     <div class="jr-viewbar">
       <div class="jr-viewtoggle">
         <button class="jr-vbtn2 ${cVue==='photos'?'on':''}" data-cvue="photos">Photos</button>
+        <button class="jr-vbtn2 ${cVue==='pays'?'on':''}" data-cvue="pays">Pays</button>
+        <button class="jr-vbtn2 ${cVue==='annees'?'on':''}" data-cvue="annees">Années</button>
         <button class="jr-vbtn2 ${cVue==='liste'?'on':''}" data-cvue="liste">Liste</button>
         ${isAdmin ? `<button class="jr-vbtn2 ${cVue==='stats'?'on':''}" data-cvue="stats">Stats</button>` : ""}
       </div>
@@ -2346,13 +2366,51 @@ function renderCartes() {
     <div id="cListe">${
       cVue === "stats" ? statsCartes()
       : cVue === "photos"
-        ? (cDetailId ? ficheCarte(cartes.find(x=>x.id===cDetailId)) : "") +
-          `<div class="jr-vignes">${liste.map(vignetteCarte).join("")}</div>`
+        ? `<div class="jr-vignes">${liste.map(c => vignetteCarte(c) +
+            (cDetailId === c.id ? `<div class="jr-vign-fiche">${ficheCarte(c)}</div>` : "")).join("")}</div>`
+      : cVue === "annees" ? vueAnnees(liste)
+      : cVue === "pays" ? vuePays(liste)
         : (liste.map(c => cDetailId === c.id ? ficheCarte(c) : ligneCarte(c)).join("") || `<div class="jr-empty">Aucune carte ne correspond.</div>`)
     }</div>`;
 
   brancherCartes();
   renderPanier();
+}
+
+function vueAnnees(liste) {
+  const parAn = {};
+  liste.forEach(c => { const k = c.annee || "Sans date"; parAn[k] = (parAn[k]||0)+1; });
+  const cles = Object.keys(parAn).sort((a,b) => a === "Sans date" ? 1 : b === "Sans date" ? -1 : a - b);
+  if (!cles.length) return `<div class="jr-empty">Aucune carte.</div>`;
+  const max = Math.max(...Object.values(parAn));
+  const fiche = cDetailId ? cartes.find(x => x.id === cDetailId) : null;
+  return `<p class="jr-dates-intro">Cliquez sur une année pour voir les cartes correspondantes.</p>
+    <div class="jr-annees">${cles.map(k => {
+      const n = parAn[k];
+      const force = 0.35 + 0.65 * (n / max);
+      return `<button class="jr-anbloc" data-canne="${k}" style="background:rgba(47,72,88,${force.toFixed(2)});color:#fff">
+        <span class="jr-an-n">${k}</span><span class="jr-an-c">${n}</span></button>`;
+    }).join("")}</div>
+    ${fiche ? ficheCarte(fiche) : ""}`;
+}
+
+function vuePays(liste) {
+  const parPays = {};
+  liste.forEach(c => (c.pays||[]).forEach(p => { parPays[p] = (parPays[p]||0)+1; }));
+  const sans = liste.filter(c => !(c.pays||[]).length).length;
+  const cles = Object.keys(parPays).sort((a,b) => parPays[b]-parPays[a] || a.localeCompare(b));
+  if (!cles.length) return `<div class="jr-empty">Aucun pays renseigné.</div>`;
+  const max = Math.max(...Object.values(parPays));
+  const fiche = cDetailId ? cartes.find(x => x.id === cDetailId) : null;
+  return `<p class="jr-dates-intro">Cliquez sur un pays pour voir les cartes qui le représentent. Une carte qui couvre plusieurs pays apparaît dans chacun d'eux.</p>
+    <div class="jr-annees">${cles.map(p => {
+      const n = parPays[p];
+      const force = 0.35 + 0.65 * (n / max);
+      return `<button class="jr-anbloc jr-paysbloc" data-pays="${escapeHtml(p)}" style="background:rgba(47,72,88,${force.toFixed(2)});color:#fff">
+        <span class="jr-an-n">${escapeHtml(p)}</span><span class="jr-an-c">${n}</span></button>`;
+    }).join("")}</div>
+    ${sans ? `<p class="jr-stat-note">${sans} carte${sans>1?"s":""} sans pays renseigné, invisible${sans>1?"s":""} dans cette vue.</p>` : ""}
+    ${fiche ? ficheCarte(fiche) : ""}`;
 }
 
 function statsCartes() {
@@ -2592,11 +2650,15 @@ function brancherCartes() {
   if (el("cClear")) el("cClear").addEventListener("click", () => { cRecherche = ""; maj(); });
   if (el("cEtat")) el("cEtat").addEventListener("change", ev => { cEtatMin = parseInt(ev.target.value,10); maj(); });
   if (el("cTri")) el("cTri").addEventListener("change", ev => { cTriChamp = ev.target.value; maj(); });
+  if (el("cAnClear")) el("cAnClear").addEventListener("click", () => { cAnnee = ""; maj(); });
   if (el("cPubClear")) el("cPubClear").addEventListener("click", () => { cPublic.clear(); maj(); });
 
 
   document.querySelectorAll("[data-pays]").forEach(b => b.addEventListener("click", () => {
-    const p = b.dataset.pays; cPublic.has(p) ? cPublic.delete(p) : cPublic.add(p); maj();
+    const p = b.dataset.pays;
+    if (cVue === "pays") { cPublic.clear(); cPublic.add(p); cVue = "liste"; cDetailId = null; }
+    else { cPublic.has(p) ? cPublic.delete(p) : cPublic.add(p); }
+    maj();
   }));
   document.querySelectorAll("[data-cprov]").forEach(b => b.addEventListener("click", () => {
     cProvSel = b.dataset.cprov; cDetailId = null; cPublic.clear(); maj();
@@ -2623,7 +2685,10 @@ function brancherCartes() {
     cVue = "liste"; cFiltres = new Set(["d","s"]); cDetailId = nouvelle.id; maj();
   });
   document.querySelectorAll("[data-cvue]").forEach(b => b.addEventListener("click", () => {
-    cVue = b.dataset.cvue; cDetailId = null; maj();
+    cVue = b.dataset.cvue; cDetailId = null; cAnnee = ""; maj();
+  }));
+  document.querySelectorAll("[data-canne]").forEach(b => b.addEventListener("click", () => {
+    cAnnee = b.dataset.canne; cVue = "liste"; cDetailId = null; maj();
   }));
   document.querySelectorAll("[data-cstatline]").forEach(b => b.addEventListener("click", () => {
     cDetailId = b.dataset.cstatline; maj();
