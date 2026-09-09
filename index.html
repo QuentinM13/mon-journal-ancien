@@ -274,6 +274,9 @@
   .jr-paystag.on { background: #2f4858; color: #fff; }
   .jr-paystag span { opacity: .6; font-weight: 400; }
   .jr-form-carte { margin: 12px 0 4px; }
+  .jr-sauve-alerte { background: #fdf1e0; border: 1px solid #e8c88a; border-radius: 8px; padding: 11px 13px; margin-bottom: 12px; font-size: 12px; line-height: 1.55; color: #7a5a10; }
+  .jr-sauve-alerte button { display: block; width: 100%; margin-top: 9px; padding: 9px; border-radius: 6px; border: 1px solid #c9a35c; background: #fff; color: #7a5a10; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .jr-sauve-ok { font-size: 11px; color: #b0a894; margin: 0 0 10px; }
   .jr-annees { display: grid; grid-template-columns: repeat(auto-fill, minmax(94px, 1fr)); gap: 7px; }
   .jr-anbloc { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
   .jr-an-n { font-size: 14px; font-weight: 700; }
@@ -320,6 +323,7 @@
   <div id="jrStorageWarn"></div>
   <div class="jr-topbar"><span class="jr-mode" id="jrModeLbl"></span></div>
   <div id="jrSetupPanel"></div>
+  <div id="jrRappelSauve"></div>
   <div class="jr-univers">
     <button class="jr-ubtn" data-univ="journaux">📰 Journaux</button>
     <button class="jr-ubtn" data-univ="cartes">🗺 Cartes</button>
@@ -965,6 +969,7 @@ function seedEntries() {
 const SUPABASE_URL = "https://dbbpulaznnkyqdrquaer.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiYnB1bGF6bm5reXFkcnF1YWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxMTI1ODUsImV4cCI6MjEwMzY4ODU4NX0.TjBM10RRCVDhht16dJQzaOTBM7T6gsisjeVvuD4YfbA";
 const SESSION_KEY = "mja-session";
+const SAUVE_KEY = "mja-derniere-sauvegarde";
 
 let session = null;
 let isAdmin = false;
@@ -1230,6 +1235,7 @@ function matchesSearch(e, parsed) {
 function render() {
   renderUnivers();
   renderTopbar();
+  renderRappelSauvegarde();
   if (univers === "cartes") { renderCartes(); return; }
   renderDisclaimer();
   renderTabs();
@@ -1330,6 +1336,31 @@ function renderSetup() {
       m.textContent = "✕ Échec : " + err.message;
       m.style.color = "#a33";
     }
+  });
+}
+
+function renderRappelSauvegarde() {
+  const z = document.getElementById("jrRappelSauve");
+  if (!z) return;
+  if (!isAdmin) { z.innerHTML = ""; return; }
+  let dernier = null;
+  try { const v = window.localStorage.getItem(SAUVE_KEY); if (v) dernier = Number(v); } catch (e) {}
+  const jours = dernier ? Math.floor((Date.now() - dernier) / 86400000) : null;
+  if (jours !== null && jours < 7) {
+    z.innerHTML = `<p class="jr-sauve-ok">Dernière sauvegarde il y a ${jours === 0 ? "moins d'un jour" : jours + " jour" + (jours>1?"s":"")}.</p>`;
+    return;
+  }
+  const txt = dernier
+    ? `Ta dernière sauvegarde date de ${jours} jours.`
+    : `Tu n'as jamais fait de sauvegarde depuis cet appareil.`;
+  z.innerHTML = `<div class="jr-sauve-alerte">
+    <b>⚠ Pense à sauvegarder</b><br>${txt}
+    Une sauvegarde, c'est un texte à copier puis à coller dans un mail que tu t'envoies.
+    <button id="jrSauveNow">Sauvegarder maintenant</button>
+  </div>`;
+  document.getElementById("jrSauveNow").addEventListener("click", () => {
+    const b = document.getElementById("jrExportBtn");
+    if (b) { b.click(); b.scrollIntoView({ behavior: "smooth", block: "center" }); }
   });
 }
 
@@ -3184,7 +3215,9 @@ document.getElementById("jrExportBtn").addEventListener("click", () => {
     const msg = document.getElementById("jrBkMsg");
     try {
       await navigator.clipboard.writeText(payload);
-      msg.textContent = "✓ Sauvegarde copiée. Colle-la quelque part de sûr.";
+      try { window.localStorage.setItem(SAUVE_KEY, String(Date.now())); } catch (e) {}
+      msg.textContent = "✓ Copiée. Colle-la maintenant dans un mail que tu t'envoies — tant que ce n'est pas fait, elle n'existe pas.";
+      renderRappelSauvegarde();
     } catch (err) {
       ta.select();
       msg.textContent = "Sélectionne le texte ci-dessus et copie-le manuellement.";
