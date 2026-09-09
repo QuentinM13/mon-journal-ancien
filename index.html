@@ -272,6 +272,8 @@
   .jr-pays-lbl { width: 100%; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #8a8070; margin-bottom: 2px; }
   .jr-paystag { font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid #2f4858; background: #fff; color: #2f4858; cursor: pointer; font-family: inherit; font-weight: 600; }
   .jr-paystag.on { background: #2f4858; color: #fff; }
+  .jr-paystag-master { background: #2b2620; border-color: #2b2620; color: #fff; }
+  .jr-paystag-master.on { background: #3a6b2a; border-color: #3a6b2a; }
   .jr-paystag span { opacity: .6; font-weight: 400; }
   .jr-form-carte { margin: 12px 0 4px; }
   .jr-sauve-alerte { background: #fdf1e0; border: 1px solid #e8c88a; border-radius: 8px; padding: 11px 13px; margin-bottom: 12px; font-size: 12px; line-height: 1.55; color: #7a5a10; }
@@ -372,8 +374,6 @@
     <div id="jrCmdPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrBulkBtn">📦 Ajouter un lot de journaux</button>
     <div id="jrBulkPanel" style="display:none;"></div>
-    <button class="jr-cmdbtn" id="jrRecupBtn">🛟 Récupérer la copie de cet appareil</button>
-    <div id="jrRecupPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrTagToolBtn">🏷 Réorganiser les thèmes</button>
     <div id="jrTagToolPanel" style="display:none;"></div>
     <p class="jr-bk-hint">Avant chaque mise à jour de l'outil : sauvegarde, puis restaure après. Tes modifications sont conservées.</p>
@@ -2328,7 +2328,11 @@ function renderCartes() {
   const paysTous = {};
   cartes.filter(dansProv).filter(c => !cFiltres.size || cFiltres.has(c.statut||"d"))
         .forEach(c => (c.pays||[]).forEach(p => { paysTous[p] = (paysTous[p]||0)+1; }));
-  const paysTri = Object.keys(paysTous).sort((a,b) => paysTous[b]-paysTous[a] || a.localeCompare(b));
+  const paysTri = Object.keys(paysTous).sort((a,b) => {
+    const ma = a.charAt(0) === "#", mb = b.charAt(0) === "#";
+    if (ma !== mb) return ma ? -1 : 1;
+    return paysTous[b]-paysTous[a] || a.localeCompare(b);
+  });
 
   const liste = cartesFiltrees();
   const coutStock = liste.reduce((s,c) => s + (c.achat||0), 0);
@@ -2362,7 +2366,7 @@ function renderCartes() {
     ${cAnnee ? `<div class="jr-filtre-actif">Année ${escapeHtml(cAnnee)} <button id="cAnClear">✕</button></div>` : ""}
     <div class="jr-pays-barre">
       <span class="jr-pays-lbl">Pays représentés</span>
-      ${paysTri.map(p => `<button class="jr-paystag ${cPublic.has(p)?'on':''}" data-pays="${escapeHtml(p)}">${escapeHtml(p)} <span>${paysTous[p]}</span></button>`).join("")}
+      ${paysTri.map(p => `<button class="jr-paystag ${p.charAt(0)==="#"?"jr-paystag-master":""} ${cPublic.has(p)?'on':''}" data-pays="${escapeHtml(p)}">${escapeHtml(p.charAt(0)==="#"?p.slice(1):p)} <span>${paysTous[p]}</span></button>`).join("")}
       ${cPublic.size ? `<button class="jr-clearTags" id="cPubClear">Tout afficher</button>` : ""}
     </div>
 
@@ -2387,7 +2391,6 @@ function renderCartes() {
     <div class="jr-viewbar">
       <div class="jr-viewtoggle">
         <button class="jr-vbtn2 ${cVue==='photos'?'on':''}" data-cvue="photos">Photos</button>
-        <button class="jr-vbtn2 ${cVue==='pays'?'on':''}" data-cvue="pays">Pays</button>
         <button class="jr-vbtn2 ${cVue==='annees'?'on':''}" data-cvue="annees">Années</button>
         <button class="jr-vbtn2 ${cVue==='liste'?'on':''}" data-cvue="liste">Liste</button>
         ${isAdmin ? `<button class="jr-vbtn2 ${cVue==='stats'?'on':''}" data-cvue="stats">Stats</button>` : ""}
@@ -2395,6 +2398,8 @@ function renderCartes() {
     </div>
 
     <div class="jr-count">${cVue==='stats' ? "" : `${liste.length} carte${liste.length!==1?'s':''}${isAdmin ? ` · ${coutStock.toFixed(2)} € d'achat · ${valStock} € estimés` : ""}`}</div>
+    ${isAdmin && planPays().length ? `<button class="jr-cmdbtn" id="cPaysToolBtn">🌍 Réorganiser les pays</button>
+    <div id="cPaysToolPanel" style="display:none;"></div>` : ""}
     ${isAdmin && cVue !== "stats" ? `<button class="jr-addbtn" id="cAddCarte">+ Ajouter une carte${cProvSel ? " dans « " + escapeHtml(cProvSel) + " »" : ""}</button>` : ""}
     <div id="cListe">${
       cVue === "stats" ? statsCartes()
@@ -2402,7 +2407,6 @@ function renderCartes() {
         ? `<div class="jr-vignes">${liste.map(c => vignetteCarte(c) +
             (cDetailId === c.id ? `<div class="jr-vign-fiche">${ficheCarte(c)}</div>` : "")).join("")}</div>`
       : cVue === "annees" ? vueAnnees(liste)
-      : cVue === "pays" ? vuePays(liste)
         : (liste.map(c => cDetailId === c.id ? ficheCarte(c) : ligneCarte(c)).join("") || `<div class="jr-empty">Aucune carte ne correspond.</div>`)
     }</div>`;
 
@@ -2415,35 +2419,126 @@ function vueAnnees(liste) {
   liste.forEach(c => { const k = c.annee || "Sans date"; parAn[k] = (parAn[k]||0)+1; });
   const cles = Object.keys(parAn).sort((a,b) => a === "Sans date" ? 1 : b === "Sans date" ? -1 : a - b);
   if (!cles.length) return `<div class="jr-empty">Aucune carte.</div>`;
-  const max = Math.max(...Object.values(parAn));
+  const PAL = [
+    { min: 20, bg: "#1b3140", lbl: "20 et +" },
+    { min: 10, bg: "#294a5e", lbl: "10 à 19" },
+    { min: 5,  bg: "#3d687f", lbl: "5 à 9" },
+    { min: 3,  bg: "#5f8ba1", lbl: "3 ou 4" },
+    { min: 1,  bg: "#89aec1", lbl: "1 ou 2" }
+  ];
+  const pal = n => PAL.find(x => n >= x.min) || PAL[PAL.length-1];
   const fiche = cDetailId ? cartes.find(x => x.id === cDetailId) : null;
   return `<p class="jr-dates-intro">Cliquez sur une année pour voir les cartes correspondantes.</p>
+    <div class="jr-legende">
+      <span>Cartes disponibles :</span>
+      ${PAL.slice().reverse().map(x => `<span class="jr-leg-case" style="background:${x.bg};color:#fff">${x.lbl}</span>`).join("")}
+    </div>
     <div class="jr-annees">${cles.map(k => {
       const n = parAn[k];
-      const force = 0.35 + 0.65 * (n / max);
-      return `<button class="jr-anbloc" data-canne="${k}" style="background:rgba(47,72,88,${force.toFixed(2)});color:#fff">
+      return `<button class="jr-anbloc" data-canne="${k}" style="background:${pal(n).bg};color:#fff">
         <span class="jr-an-n">${k}</span><span class="jr-an-c">${n}</span></button>`;
     }).join("")}</div>
     ${fiche ? ficheCarte(fiche) : ""}`;
 }
 
-function vuePays(liste) {
-  const parPays = {};
-  liste.forEach(c => (c.pays||[]).forEach(p => { parPays[p] = (parPays[p]||0)+1; }));
-  const sans = liste.filter(c => !(c.pays||[]).length).length;
-  const cles = Object.keys(parPays).sort((a,b) => parPays[b]-parPays[a] || a.localeCompare(b));
-  if (!cles.length) return `<div class="jr-empty">Aucun pays renseigné.</div>`;
-  const max = Math.max(...Object.values(parPays));
-  const fiche = cDetailId ? cartes.find(x => x.id === cDetailId) : null;
-  return `<p class="jr-dates-intro">Cliquez sur un pays pour voir les cartes qui le représentent. Une carte qui couvre plusieurs pays apparaît dans chacun d'eux.</p>
-    <div class="jr-annees">${cles.map(p => {
-      const n = parPays[p];
-      const force = 0.35 + 0.65 * (n / max);
-      return `<button class="jr-anbloc jr-paysbloc" data-pays="${escapeHtml(p)}" style="background:rgba(47,72,88,${force.toFixed(2)});color:#fff">
-        <span class="jr-an-n">${escapeHtml(p)}</span><span class="jr-an-c">${n}</span></button>`;
-    }).join("")}</div>
-    ${sans ? `<p class="jr-stat-note">${sans} carte${sans>1?"s":""} sans pays renseigné, invisible${sans>1?"s":""} dans cette vue.</p>` : ""}
-    ${fiche ? ficheCarte(fiche) : ""}`;
+// ---------- Réorganisation des pays ----------
+// Grands ensembles (préfixe #) : une carte porte ses pays précis PLUS son ou ses grands ensembles.
+const ENSEMBLES = {
+  "#Europe": ["France","Allemagne","Belgique","Italie","Suisse","Espagne","Pologne","Royaume-Uni",
+              "Pays-Bas","Portugal","République tchèque","Autriche","Danemark","Norvège","Suède",
+              "Serbie","Scandinavie","Alsace-Lorraine","Russie","Turquie"],
+  "#Afrique": ["Égypte","Madagascar","Afrique"],
+  "#Amériques": ["Amérique","Canada","Mexique"],
+  "#Asie": ["Asie","Turquie","Russie"],
+  "#Océanie": ["Océanie","Australie"]
+};
+const SCANDINAVES = ["Danemark","Norvège","Suède"];
+
+function planPays() {
+  const ops = [];
+  const push = (type, nom, vers, test) => {
+    const cibles = cartes.filter(test);
+    if (cibles.length) ops.push({ type, nom, vers, n: cibles.length, cibles });
+  };
+
+  // 1. « Danemark / Norvège » éclaté en pays réels + ensemble Scandinavie
+  push("scinde", "Danemark / Norvège", "Danemark + Norvège + #Scandinavie",
+       c => (c.pays||[]).includes("Danemark / Norvège"));
+
+  // 2. « International » supprimé : c'était un fourre-tout
+  push("retire", "International", null, c => (c.pays||[]).includes("International"));
+
+  // 3. grands ensembles ajoutés d'après les pays présents
+  Object.keys(ENSEMBLES).forEach(ens => {
+    push("ajoute", ens, null, c => {
+      const p = c.pays || [];
+      if (p.includes(ens)) return false;
+      return p.some(x => ENSEMBLES[ens].includes(x));
+    });
+  });
+
+  // 4. statut Spéciale : tout ce qui peut parler à un étranger
+  push("statut", "Spéciale", null, c => {
+    if (c.statut === "v" || c.statut === "r") return false;
+    const p = (c.pays||[]).filter(x => x !== "International");
+    const etranger = p.some(x => x.charAt(0) !== "#" && x !== "France" && x !== "Alsace-Lorraine")
+                  || p.includes("#Monde");
+    return etranger && c.statut !== "s";
+  });
+  push("statut-d", "Disponible", null, c => {
+    if (c.statut !== "s") return false;
+    const p = (c.pays||[]).filter(x => x !== "International");
+    const etranger = p.some(x => x.charAt(0) !== "#" && x !== "France" && x !== "Alsace-Lorraine");
+    return !etranger;
+  });
+  return ops;
+}
+
+function renderPaysTool() {
+  const z = document.getElementById("cPaysToolPanel");
+  const ops = planPays();
+  if (!ops.length) { z.innerHTML = `<p class="jr-cmd-msg">Rien à réorganiser.</p>`; return; }
+  const mot = { scinde:"Éclater", retire:"Supprimer", ajoute:"Ajouter", statut:"Passer en Spéciale", "statut-d":"Repasser en Disponible" };
+  z.innerHTML = `<div class="jr-cmd-res">
+    ${ops.map(o => `<div class="jr-cmd-ligne"><b>${mot[o.type]}</b>
+      <span>${escapeHtml(o.nom)}${o.vers ? " → " + escapeHtml(o.vers) : ""}</span>
+      <em>${o.n} cartes</em></div>`).join("")}
+    <p class="jr-cmd-msg">Règle appliquée : une carte est <b>Spéciale</b> si elle peut parler à un acheteur étranger, c'est-à-dire si elle représente autre chose que la seule France.</p>
+    <div class="jr-bk-actions"><button id="cPaysGo" class="jr-btn">Appliquer</button></div>
+    <p class="jr-cmd-msg" id="cPaysMsg"></p></div>`;
+
+  document.getElementById("cPaysGo").addEventListener("click", async () => {
+    const msg = document.getElementById("cPaysMsg");
+    const touchees = new Set();
+    ops.forEach(o => o.cibles.forEach(c => {
+      c.pays = c.pays || [];
+      if (o.type === "scinde") {
+        c.pays = c.pays.filter(x => x !== o.nom);
+        SCANDINAVES.slice(0,2).forEach(x => { if (!c.pays.includes(x)) c.pays.push(x); });
+        if (!c.pays.includes("#Scandinavie")) c.pays.push("#Scandinavie");
+      } else if (o.type === "retire") {
+        c.pays = c.pays.filter(x => x !== o.nom);
+      } else if (o.type === "ajoute") {
+        if (!c.pays.includes(o.nom)) c.pays.unshift(o.nom);
+      } else if (o.type === "statut") { c.statut = "s"; }
+      else if (o.type === "statut-d") { c.statut = "d"; }
+      touchees.add(c);
+    }));
+    const liste = [...touchees];
+    msg.textContent = `Enregistrement de ${liste.length} cartes…`;
+    if (cloudOk && isAdmin) {
+      try {
+        for (let i = 0; i < liste.length; i += 150) {
+          await rest("cartes", { method: "POST",
+            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(liste.slice(i, i+150).map(carteToRow)) });
+        }
+      } catch (err) { msg.textContent = "✕ Échec : " + err.message; return; }
+    }
+    sauverCartesLocal();
+    msg.textContent = `✓ ${liste.length} cartes mises à jour.`;
+    cPublic.clear(); renderCartes();
+  });
 }
 
 function statsCartes() {
@@ -2556,7 +2651,7 @@ function ligneCarte(c) {
     </div>
     ${(bas.length || (c.pays||[]).length) ? `<div class="jr-row-open jr-row-bas" data-copen="${c.id}">
       ${bas.map(x => `<span class="jr-cinfo">${escapeHtml(x)}</span>`).join("")}
-      ${(c.pays||[]).slice(0,4).map(p => `<span class="jr-rowtag">${escapeHtml(p)}</span>`).join("")}
+      ${(c.pays||[]).slice().sort((a,b)=>(b.charAt(0)==="#"?1:0)-(a.charAt(0)==="#"?1:0)).slice(0,4).map(p => `<span class="jr-rowtag ${p.charAt(0)==="#"?"jr-rowtag-master":""}">${escapeHtml(p.charAt(0)==="#"?p.slice(1):p)}</span>`).join("")}
       ${(c.pays||[]).length > 4 ? `<span class="jr-rowtag jr-rowtag-plus">+${c.pays.length-4}</span>` : ""}
       ${isAdmin && !(c.pays||[]).length ? `<span class="jr-capreciser">pays à préciser</span>` : ""}
     </div>` : ""}
@@ -2598,7 +2693,7 @@ function ficheCarte(c) {
         <span class="jr-badge jr-badge-${st}">${LBL[st]}</span>
       </div>
       ${(c.pays||[]).length ? `<label class="jr-lbl">Pays représentés</label>
-        <div class="jr-tagwrap">${c.pays.map(p => `<span class="jr-tagpill">${escapeHtml(p)}</span>`).join("")}</div>` : ""}
+        <div class="jr-tagwrap">${c.pays.slice().sort((a,b)=>(b.charAt(0)==="#"?1:0)-(a.charAt(0)==="#"?1:0)).map(p => `<span class="jr-tagpill ${p.charAt(0)==="#"?"jr-tagpill-master":""}">${escapeHtml(p.charAt(0)==="#"?p.slice(1):p)}</span>`).join("")}</div>` : ""}
       ${(st === "d" || st === "s")
         ? `<button class="jr-detail-panier ${dansPanier("c:"+c.id)?"on":""}" id="cPanierBtn">${dansPanier("c:"+c.id)?"✓ Dans ma sélection":"+ Ajouter à ma sélection"}</button>` : ""}
     </div>`;
@@ -2657,7 +2752,7 @@ function ficheCarte(c) {
 
     <label class="jr-lbl">Pays représentés</label>
     <div class="jr-tagwrap">
-      ${(c.pays||[]).map((p,i) => `<span class="jr-tagpill">${escapeHtml(p)}<button data-crm="${i}" aria-label="Retirer">×</button></span>`).join("") || `<span class="jr-notags">Aucun pays</span>`}
+      ${(c.pays||[]).map((p,i) => `<span class="jr-tagpill ${p.charAt(0)==="#"?"jr-tagpill-master":""}">${escapeHtml(p.charAt(0)==="#"?p.slice(1):p)}<button data-crm="${i}" aria-label="Retirer">×</button></span>`).join("") || `<span class="jr-notags">Aucun pays</span>`}
     </div>
     <div class="jr-tagadd">
       <input type="text" id="cNewPays" autocomplete="off" placeholder="Ajouter un pays ou « International »">
@@ -2696,6 +2791,11 @@ function brancherCartes() {
   document.querySelectorAll("[data-cprov]").forEach(b => b.addEventListener("click", () => {
     cProvSel = b.dataset.cprov; cDetailId = null; cPublic.clear(); maj();
   }));
+  if (el("cPaysToolBtn")) el("cPaysToolBtn").addEventListener("click", () => {
+    const pn = el("cPaysToolPanel");
+    if (pn.style.display === "block") { pn.style.display = "none"; return; }
+    pn.style.display = "block"; renderPaysTool();
+  });
   if (el("cProvNew")) el("cProvNew").addEventListener("click", () => {
     const f = el("cNewProvForm"); f.style.display = "flex"; el("cNewProvInput").focus();
   });
@@ -3550,58 +3650,6 @@ document.getElementById("jrTagToolBtn").addEventListener("click", () => {
   if (p.style.display === "block") { p.style.display = "none"; return; }
   p.style.display = "block";
   renderTagTool();
-});
-
-document.getElementById("jrRecupBtn").addEventListener("click", () => {
-  const p = document.getElementById("jrRecupPanel");
-  if (p.style.display === "block") { p.style.display = "none"; return; }
-  p.style.display = "block";
-
-  const lire = k => { try { const v = window.localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } };
-  const j = lire(STORAGE_KEY), col = lire(COLLECTIONS_KEY), ca = lire(CARTES_KEY);
-  const nbJ = Array.isArray(j) ? j.length : 0;
-  const nbC = Array.isArray(ca) ? ca.length : 0;
-  const photosJ = Array.isArray(j) ? j.filter(x => x.photo).length : 0;
-  const photosC = Array.isArray(ca) ? ca.filter(x => x.photo).length : 0;
-
-  if (!nbJ && !nbC) {
-    p.innerHTML = `<p class="jr-cmd-msg jr-cmd-warn">Aucune copie trouvée sur cet appareil. Essaie depuis le navigateur ou le téléphone où tu saisissais tes données, sans avoir rien modifié depuis.</p>`;
-    return;
-  }
-  p.innerHTML = `<div class="jr-cmd-res">
-    <p class="jr-cmd-msg"><b>Copie trouvée sur cet appareil :</b><br>
-      ${nbJ} journaux${photosJ ? " (dont " + photosJ + " avec photo)" : ""}<br>
-      ${nbC} cartes${photosC ? " (dont " + photosC + " avec photo)" : ""}</p>
-    <p class="jr-cmd-msg">Cette copie remplacera ce qui est actuellement affiché et sera renvoyée dans la base en ligne. Les photos se reconnecteront automatiquement.</p>
-    <div class="jr-bk-actions"><button id="jrRecupGo" class="jr-btn">Tout restaurer</button></div>
-    <p class="jr-cmd-msg" id="jrRecupMsg"></p></div>`;
-
-  document.getElementById("jrRecupGo").addEventListener("click", async () => {
-    const msg = document.getElementById("jrRecupMsg");
-    msg.textContent = "Restauration en cours, ne ferme pas la page…";
-    try {
-      if (nbJ) {
-        entries = j;
-        entries.forEach(e => {
-          if (!e.collectionId) e.collectionId = "default";
-          if (!Array.isArray(e.tags)) e.tags = [];
-          if (typeof e.title !== "string") e.title = "";
-          if (typeof e.note !== "string") e.note = "";
-        });
-        if (Array.isArray(col) && col.length) collections = col;
-      }
-      if (nbC) { cartes = ca; cartesChargees = true; }
-      if (cloudOk && isAdmin) {
-        if (nbJ) await pushAll();
-        if (nbC) await pushCartes();
-      }
-      msg.textContent = `✓ Restauré : ${nbJ} journaux et ${nbC} cartes. Rechargement…`;
-      setTimeout(() => location.reload(), 1200);
-    } catch (err) {
-      msg.style.color = "#a33";
-      msg.textContent = "✕ Échec : " + err.message;
-    }
-  });
 });
 
 (async function init() {
