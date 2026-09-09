@@ -143,6 +143,7 @@
   .jr-cmdbtn { width: 100%; margin-top: 8px; padding: 9px; border-radius: 8px; border: 1px solid #d8d0bd; background: #fff; color: #5a5445; font-size: 13px; cursor: pointer; }
   #jrBulkPanel select { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 13px; font-family: inherit; background: #fff; }
   #jrBulkPanel textarea { width: 100%; box-sizing: border-box; height: 110px; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 12px; font-family: inherit; }
+  #jrJsonPanel textarea { width: 100%; box-sizing: border-box; height: 130px; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 11px; font-family: monospace; }
   #jrCmdPanel textarea { width: 100%; box-sizing: border-box; height: 90px; margin-top: 8px; padding: 8px; border: 1px solid #d8d0bd; border-radius: 6px; font-size: 12px; font-family: inherit; }
   .jr-cmd-res { margin-top: 10px; }
   .jr-cmd-ligne { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #f2eee4; }
@@ -372,6 +373,8 @@
     </div>
     <button class="jr-cmdbtn" id="jrCmdBtn">📋 Traiter une commande reçue</button>
     <div id="jrCmdPanel" style="display:none;"></div>
+    <button class="jr-cmdbtn" id="jrJsonBtn">📥 Importer des fiches préparées</button>
+    <div id="jrJsonPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrBulkBtn">📦 Ajouter un lot de journaux</button>
     <div id="jrBulkPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrTagToolBtn">🏷 Réorganiser les thèmes</button>
@@ -3650,6 +3653,99 @@ document.getElementById("jrTagToolBtn").addEventListener("click", () => {
   if (p.style.display === "block") { p.style.display = "none"; return; }
   p.style.display = "block";
   renderTagTool();
+});
+
+// ---------- Import additif de journaux (JSON) ----------
+function renderImportJson() {
+  const p = document.getElementById("jrJsonPanel");
+  p.innerHTML = `
+    <textarea id="jrJsonText" placeholder='Colle ici le bloc JSON préparé…'></textarea>
+    <div class="jr-bk-actions"><button id="jrJsonCheck" class="jr-btn">Vérifier</button></div>
+    <div id="jrJsonResult"></div>`;
+  document.getElementById("jrJsonCheck").addEventListener("click", verifierImportJson);
+}
+
+function verifierImportJson() {
+  const res = document.getElementById("jrJsonResult");
+  let data;
+  try {
+    data = JSON.parse(document.getElementById("jrJsonText").value.trim());
+    if (!Array.isArray(data)) throw new Error("attendu : une liste entre crochets");
+  } catch (err) {
+    res.innerHTML = `<p class="jr-cmd-msg jr-cmd-warn">Bloc illisible : ${escapeHtml(err.message)}</p>`;
+    return;
+  }
+
+  const nouveaux = [], doublons = [], rejets = [];
+  const collsAcreer = new Set();
+  const vus = new Set();
+
+  data.forEach((r, i) => {
+    const nomColl = String(r.collection || "").trim();
+    const y = parseInt(r.annee, 10), m = parseInt(r.mois, 10), d = parseInt(r.jour, 10);
+    if (!nomColl || !y || !m || !d || m < 1 || m > 12 || d < 1 || d > new Date(y, m, 0).getDate()) {
+      rejets.push(`ligne ${i+1}`); return;
+    }
+    const col = collections.find(c => normalize(c.name) === normalize(nomColl));
+    const cid = col ? col.id : "imp-" + normalize(nomColl).replace(/[^a-z0-9]+/g, "-").slice(0, 24);
+    if (!col) collsAcreer.add(nomColl + "||" + cid);
+    const cle = cid + "|" + y + "-" + m + "-" + d;
+    if (vus.has(cle)) { doublons.push(`${d}/${m}/${y}`); return; }
+    vus.add(cle);
+    if (entries.some(e => e.collectionId === cid && e.year === y && e.month === m && e.day === d)) {
+      doublons.push(`${d}/${m}/${y}`); return;
+    }
+    nouveaux.push({
+      id: uid(), collectionId: cid, year: y, month: m, day: d,
+      status: ["d","s","v","r"].indexOf(r.statut) >= 0 ? r.statut : "d",
+      title: String(r.titre || "").trim(),
+      tags: Array.isArray(r.tags) ? r.tags.filter(Boolean).map(String) : [],
+      note: String(r.note || ""), guessed: false, reservedUntil: null,
+      venduLe: r.statut === "v" ? Date.now() : null, photo: null
+    });
+  });
+
+  const listeColls = [...collsAcreer].map(x => x.split("||"));
+  res.innerHTML = `<div class="jr-cmd-res">
+    <p class="jr-cmd-msg"><b>${nouveaux.length}</b> journaux à ajouter.</p>
+    ${listeColls.length ? `<p class="jr-cmd-msg">Collections créées : ${listeColls.map(c => escapeHtml(c[0])).join(" · ")}</p>` : ""}
+    ${nouveaux.length ? `<p class="jr-cmd-msg">${nouveaux.slice(0,8).map(e => `${e.day} ${MOIS[e.month-1]} ${e.year}`).join(" · ")}${nouveaux.length>8?" …":""}</p>` : ""}
+    ${doublons.length ? `<p class="jr-cmd-msg jr-cmd-warn">${doublons.length} déjà présents, ignorés.</p>` : ""}
+    ${rejets.length ? `<p class="jr-cmd-msg jr-cmd-warn">${rejets.length} lignes incomplètes : ${rejets.slice(0,5).join(", ")}</p>` : ""}
+    ${nouveaux.length ? `<div class="jr-bk-actions"><button id="jrJsonGo" class="jr-btn">Importer</button></div>` : ""}
+    <p class="jr-cmd-msg" id="jrJsonMsg"></p></div>`;
+
+  const go = document.getElementById("jrJsonGo");
+  if (!go) return;
+  go.addEventListener("click", async () => {
+    const msg = document.getElementById("jrJsonMsg");
+    msg.textContent = "Import en cours…";
+    listeColls.forEach(([nom, id]) => {
+      if (!collections.some(c => c.id === id)) collections.push({ id, name: nom, prix: null, gallica: null });
+    });
+    nouveaux.forEach(e => entries.push(e));
+    try {
+      if (cloudOk && isAdmin) {
+        await saveCollections();
+        for (let i = 0; i < nouveaux.length; i += 200) {
+          await rest("journaux", { method: "POST",
+            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(nouveaux.slice(i, i+200).map(toRow)) });
+        }
+      }
+      localSave();
+      msg.textContent = `✓ ${nouveaux.length} journaux importés.`;
+      document.getElementById("jrJsonText").value = "";
+      setTimeout(() => render(), 800);
+    } catch (err) { msg.textContent = "✕ Échec : " + err.message; }
+  });
+}
+
+document.getElementById("jrJsonBtn").addEventListener("click", () => {
+  const p = document.getElementById("jrJsonPanel");
+  if (p.style.display === "block") { p.style.display = "none"; return; }
+  p.style.display = "block";
+  renderImportJson();
 });
 
 (async function init() {
