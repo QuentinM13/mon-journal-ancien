@@ -368,6 +368,8 @@
     <div id="jrCmdPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrBulkBtn">📦 Ajouter un lot de journaux</button>
     <div id="jrBulkPanel" style="display:none;"></div>
+    <button class="jr-cmdbtn" id="jrRecupBtn">🛟 Récupérer la copie de cet appareil</button>
+    <div id="jrRecupPanel" style="display:none;"></div>
     <button class="jr-cmdbtn" id="jrTagToolBtn">🏷 Réorganiser les thèmes</button>
     <div id="jrTagToolPanel" style="display:none;"></div>
     <p class="jr-bk-hint">Avant chaque mise à jour de l'outil : sauvegarde, puis restaure après. Tes modifications sont conservées.</p>
@@ -3515,6 +3517,58 @@ document.getElementById("jrTagToolBtn").addEventListener("click", () => {
   if (p.style.display === "block") { p.style.display = "none"; return; }
   p.style.display = "block";
   renderTagTool();
+});
+
+document.getElementById("jrRecupBtn").addEventListener("click", () => {
+  const p = document.getElementById("jrRecupPanel");
+  if (p.style.display === "block") { p.style.display = "none"; return; }
+  p.style.display = "block";
+
+  const lire = k => { try { const v = window.localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } };
+  const j = lire(STORAGE_KEY), col = lire(COLLECTIONS_KEY), ca = lire(CARTES_KEY);
+  const nbJ = Array.isArray(j) ? j.length : 0;
+  const nbC = Array.isArray(ca) ? ca.length : 0;
+  const photosJ = Array.isArray(j) ? j.filter(x => x.photo).length : 0;
+  const photosC = Array.isArray(ca) ? ca.filter(x => x.photo).length : 0;
+
+  if (!nbJ && !nbC) {
+    p.innerHTML = `<p class="jr-cmd-msg jr-cmd-warn">Aucune copie trouvée sur cet appareil. Essaie depuis le navigateur ou le téléphone où tu saisissais tes données, sans avoir rien modifié depuis.</p>`;
+    return;
+  }
+  p.innerHTML = `<div class="jr-cmd-res">
+    <p class="jr-cmd-msg"><b>Copie trouvée sur cet appareil :</b><br>
+      ${nbJ} journaux${photosJ ? " (dont " + photosJ + " avec photo)" : ""}<br>
+      ${nbC} cartes${photosC ? " (dont " + photosC + " avec photo)" : ""}</p>
+    <p class="jr-cmd-msg">Cette copie remplacera ce qui est actuellement affiché et sera renvoyée dans la base en ligne. Les photos se reconnecteront automatiquement.</p>
+    <div class="jr-bk-actions"><button id="jrRecupGo" class="jr-btn">Tout restaurer</button></div>
+    <p class="jr-cmd-msg" id="jrRecupMsg"></p></div>`;
+
+  document.getElementById("jrRecupGo").addEventListener("click", async () => {
+    const msg = document.getElementById("jrRecupMsg");
+    msg.textContent = "Restauration en cours, ne ferme pas la page…";
+    try {
+      if (nbJ) {
+        entries = j;
+        entries.forEach(e => {
+          if (!e.collectionId) e.collectionId = "default";
+          if (!Array.isArray(e.tags)) e.tags = [];
+          if (typeof e.title !== "string") e.title = "";
+          if (typeof e.note !== "string") e.note = "";
+        });
+        if (Array.isArray(col) && col.length) collections = col;
+      }
+      if (nbC) { cartes = ca; cartesChargees = true; }
+      if (cloudOk && isAdmin) {
+        if (nbJ) await pushAll();
+        if (nbC) await pushCartes();
+      }
+      msg.textContent = `✓ Restauré : ${nbJ} journaux et ${nbC} cartes. Rechargement…`;
+      setTimeout(() => location.reload(), 1200);
+    } catch (err) {
+      msg.style.color = "#a33";
+      msg.textContent = "✕ Échec : " + err.message;
+    }
+  });
 });
 
 (async function init() {
