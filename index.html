@@ -272,7 +272,7 @@
   .jr-pays-barre { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 12px; }
   .jr-pays-lbl { width: 100%; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #8a8070; margin-bottom: 2px; }
   .jr-paystag { font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid #2f4858; background: #fff; color: #2f4858; cursor: pointer; font-family: inherit; font-weight: 600; }
-  .jr-paystag.on { background: #2f4858; color: #fff; }
+  .jr-paystag.on { background: #3a6b2a; border-color: #3a6b2a; color: #fff; }
   .jr-paystag-master { background: #2b2620; border-color: #2b2620; color: #fff; }
   .jr-paystag-master.on { background: #3a6b2a; border-color: #3a6b2a; }
   .jr-paystag span { opacity: .6; font-weight: 400; }
@@ -297,6 +297,9 @@
   .jr-vign-vide { font-size: 10px; color: #b0a894; font-style: italic; }
   .jr-vign-nom { font-size: 12px; font-weight: 600; color: #2b2620; line-height: 1.3; }
   .jr-vign-bas { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+  .jr-vignes-portrait { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+  .jr-vign-img-p { aspect-ratio: 3/4; }
+  .jr-vign-img-p img { object-fit: cover; object-position: top; }
   .jr-badge-v { background: #ece6d8; color: #7a7362; }
   .jr-badge-r { background: #fbeecb; color: #92650c; }
   .jr-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
@@ -353,6 +356,7 @@
     <div class="jr-viewtoggle">
       <button class="jr-vbtn" data-view="calendrier">Calendrier</button>
       <button class="jr-vbtn" data-view="dates">Dates</button>
+      <button class="jr-vbtn" data-view="photos">Photos</button>
       <button class="jr-vbtn" data-view="liste">Liste</button>
       <button class="jr-vbtn jr-vbtn-admin" data-view="stats">Stats</button>
     </div>
@@ -885,6 +889,8 @@ const SEED_CARTES=[
 
 const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const STATUS_LABEL = { d: "Disponible", s: "Numéro spécial", v: "Vendu", r: "Réservé" };
+function libelleStatut(st) { return (!isAdmin && st === "s") ? "Disponible" : STATUS_LABEL[st]; }
+function classeStatut(st) { return (!isAdmin && st === "s") ? "d" : st; }
 const RESERVE_DAYS = 7;
 const STORAGE_KEY = "journaux-entries-v7";
 const COLLECTIONS_KEY = "journaux-collections-v7";
@@ -1370,7 +1376,7 @@ function renderRappelSauvegarde() {
 function renderDisclaimer() {
   const z = document.getElementById("jrDisclaimer");
   if (isAdmin) { z.innerHTML = ""; return; }
-  z.innerHTML = `<p class="jr-disclaimer">Les thèmes et titres marqués « ≈ » sont déduits de la date de parution, pas d'une lecture du journal. Ils donnent le contexte historique de la période, sans garantie sur le contenu exact du numéro.</p>`;
+  z.innerHTML = `<p class="jr-disclaimer">Le prix indiqué est le tarif de base de la collection ; certains numéros, plus recherchés, sont à un tarif supérieur que je vous communique avant l'achat. Les thèmes et titres marqués « ≈ » sont déduits de la date de parution, pas d'une lecture du journal. Ils donnent le contexte historique de la période, sans garantie sur le contenu exact du numéro.</p>`;
 }
 
 function renderTabs() {
@@ -1479,7 +1485,11 @@ function renderColEdit() {
 function renderStats() {
   const counts = { d: 0, s: 0, v: 0, r: 0 };
   entries.filter(inCollection).forEach(e => counts[e.status]++);
-  const labels = [["d","Disponibles"],["s","Spéciaux"],["v","Vendus"],["r","Réservés"]];
+  let labels = [["d","Disponibles"],["s","Spéciaux"],["v","Vendus"],["r","Réservés"]];
+  if (!isAdmin) {
+    counts.d += counts.s;
+    labels = [["d","Disponibles"],["v","Vendus"],["r","Réservés"]];
+  }
   document.getElementById("jrStats").innerHTML = labels.map(([k,l]) =>
     `<button class="jr-stat ${activeFilters.has(k)?'on':''}" data-filter="${k}">
        <div class="n">${counts[k]}</div><div class="l">${l}</div>
@@ -1582,7 +1592,7 @@ function renderList() {
         </div>
         ${isAdmin
           ? `<button class="jr-badge jr-badge-${e.status} jr-badge-btn" data-status="${e.id}">${STATUS_LABEL[e.status]}</button>`
-          : `<span class="jr-badge jr-badge-${e.status}">${STATUS_LABEL[e.status]}</span>`}
+          : `<span class="jr-badge jr-badge-${classeStatut(e.status)}">${libelleStatut(e.status)}</span>`}
         ${colTag}
       </div>
       ${(sub || tagsHtml) ? `<div class="jr-row-open jr-row-bas" data-open="${e.id}">
@@ -1653,8 +1663,8 @@ function renderList() {
 function prixAffiche(e, col) {
   if (e.status === "v") return "";
   if (col.prix == null) return "";
-  if (e.status === "s") return "À partir de " + col.prix + " € — me contacter";
-  return col.prix + " €";
+  if (isAdmin) return e.status === "s" ? col.prix + " € (numéro spécial)" : col.prix + " €";
+  return "À partir de " + col.prix + " €";
 }
 
 function currentFiltered() {
@@ -1683,6 +1693,9 @@ function renderView() {
   if (viewMode === "stats") {
     liste.innerHTML = "";
     renderStatsPanel();
+  } else if (viewMode === "photos") {
+    liste.innerHTML = "";
+    renderPhotosJournaux();
   } else if (viewMode === "dates") {
     liste.innerHTML = "";
     renderDatesPanel();
@@ -1957,6 +1970,42 @@ function setStatut(e, statut, permanent) {
   e.status = statut;
   if (statut === "v") { if (!e.venduLe) e.venduLe = Date.now(); }
   else { e.venduLe = null; }
+}
+
+function renderPhotosJournaux() {
+  const zone = document.getElementById("jrCalendar");
+  const avecPhoto = currentFiltered()
+    .filter(e => e.photo)
+    .sort((a,b) => a.year - b.year || a.month - b.month || a.day - b.day);
+
+  document.getElementById("jrCount").textContent =
+    `${avecPhoto.length} ${avecPhoto.length > 1 ? "journaux" : "journal"} en photo`;
+
+  if (!avecPhoto.length) {
+    zone.innerHTML = `<div class="jr-empty">Aucun journal photographié pour cette sélection.<br>
+      <span class="jr-stat-vide">Les photos s'ajoutent depuis la fiche d'un journal.</span></div>`;
+    return;
+  }
+
+  const fiche = detailId ? entries.find(x => x.id === detailId) : null;
+  zone.innerHTML = `<div class="jr-vignes jr-vignes-portrait">${
+    avecPhoto.map(e => `
+      <button class="jr-vign jr-vign-p" data-jopen="${e.id}">
+        <span class="jr-vign-img jr-vign-img-p"><img src="${photoUrl(e.photo)}" alt="${e.day} ${MOIS[e.month-1]} ${e.year}" loading="lazy"></span>
+        <span class="jr-vign-nom">${e.day} ${MOIS[e.month-1]} ${e.year}</span>
+        <span class="jr-vign-bas">
+          <span class="jr-colchip" style="background:${collCouleur(e.collectionId).bg};color:${collCouleur(e.collectionId).fg}">${escapeHtml(collName(e.collectionId))}</span>
+        </span>
+      </button>` + (detailId === e.id ? `<div class="jr-cal-fiche">${ficheHtml(e)}</div>` : "")
+    ).join("")
+  }</div>`;
+
+  zone.querySelectorAll("[data-jopen]").forEach(b => {
+    b.addEventListener("click", () => {
+      detailId = (detailId === b.dataset.jopen) ? null : b.dataset.jopen;
+      render();
+    });
+  });
 }
 
 function renderDatesPanel() {
@@ -2777,7 +2826,13 @@ function brancherCartes() {
   const el = id => document.getElementById(id);
 
   const s = el("cSearch");
-  if (s) s.addEventListener("input", ev => { cRecherche = ev.target.value; renderCartes(); el("cSearch").focus(); });
+  if (s) s.addEventListener("input", ev => {
+    const pos = ev.target.selectionStart;
+    cRecherche = ev.target.value;
+    renderCartes();
+    const n = el("cSearch");
+    if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }
+  });
   if (el("cClear")) el("cClear").addEventListener("click", () => { cRecherche = ""; maj(); });
   if (el("cEtat")) el("cEtat").addEventListener("change", ev => { cEtatMin = parseInt(ev.target.value,10); maj(); });
   if (el("cTri")) el("cTri").addEventListener("change", ev => { cTriChamp = ev.target.value; maj(); });
